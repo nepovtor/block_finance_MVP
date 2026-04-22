@@ -138,6 +138,36 @@ function getPatternClass(pattern: Piece["shape"]["accentPattern"]) {
   return `pattern-${pattern}`;
 }
 
+function getFinanceIcon(
+  pattern: Piece["shape"]["accentPattern"],
+  accentLabel: string
+) {
+  if (accentLabel === "$") {
+    return "$";
+  }
+
+  if (accentLabel === "€") {
+    return "€";
+  }
+
+  switch (pattern) {
+    case "coin":
+      return "◎";
+    case "bill":
+      return "$";
+    case "vault":
+      return "▥";
+    case "card":
+      return "▭";
+    case "chart":
+      return "↺";
+    case "bank":
+      return "▦";
+    default:
+      return "$";
+  }
+}
+
 function renderFinanceCell(
   color: string,
   accentLabel: string,
@@ -170,7 +200,7 @@ function renderFinanceCell(
         aria-hidden="true"
       />
       <span className="finance-label" style={{ color: tone.label }} aria-hidden="true">
-        {accentLabel}
+        {getFinanceIcon(accentPattern, accentLabel)}
       </span>
     </>
   );
@@ -635,25 +665,14 @@ export default function GamePage() {
   );
 
   return (
-    <div className="page-with-bottom-action min-h-screen overflow-x-clip text-slate-100">
+    <div className="min-h-screen overflow-x-clip text-slate-100">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 p-4 lg:flex-row lg:items-start">
         <section className="flex flex-1 flex-col items-center space-y-4">
-          <div className="glass-panel animate-rise-in w-full max-w-3xl p-5 sm:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-sm uppercase tracking-[0.24em] text-emerald-200">
-                  Cashback puzzle run
-                </div>
-                <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
-                  Block Puzzle
-                </h1>
-                <p className="mt-2 text-sm text-slate-400">
-                  Keep the board liquid, cash in clears, and spend your reward at
-                  the right moment.
-                </p>
-              </div>
-              <div className="hidden flex-col gap-2 sm:items-end lg:flex">
-                <div className="rounded-full border border-amber-300/15 bg-amber-300/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-amber-100">
+          <div className="glass-panel animate-rise-in w-full max-w-3xl p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h1 className="text-xl font-bold text-white sm:text-3xl">Block Puzzle</h1>
+              <div className="hidden items-center gap-2 lg:flex">
+                <div className="brand-badge-bonus">
                   {rewardAvailable ? "Reward ready" : "Reward locked"}
                 </div>
                 <Link
@@ -665,7 +684,14 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-[1.2fr_0.8fr]">
+            <div className="mt-3 flex gap-2 lg:hidden">
+              <div className="brand-badge-finance">Score {score}</div>
+              <div className="brand-badge-neutral">
+                {rewardAvailable ? "Bonus ready" : "Bonus locked"}
+              </div>
+            </div>
+
+            <div className="mt-3 hidden gap-3 sm:grid-cols-[1.2fr_0.8fr] lg:grid">
               <div className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-slate-300">
                 {statusText}
               </div>
@@ -673,29 +699,6 @@ export default function GamePage() {
                 {touchPreviewActive
                   ? "Slide across the board, then release to place the selected piece."
                   : getSelectionStatus(selectedPiece, board)}
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:hidden">
-              <div className="stat-tile">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
-                  Score
-                </div>
-                <div className="mt-2 text-2xl font-bold text-white">{score}</div>
-              </div>
-              <div className="stat-tile">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
-                  Moves
-                </div>
-                <div className="mt-2 text-2xl font-bold text-white">{movesUsed}</div>
-              </div>
-              <div className="stat-tile">
-                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
-                  Reward
-                </div>
-                <div className="mt-2 text-sm font-semibold text-white">
-                  {rewardAvailable ? `${reward?.type} x${reward?.value}` : "Locked"}
-                </div>
               </div>
             </div>
           </div>
@@ -710,7 +713,7 @@ export default function GamePage() {
             <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
             <div className="absolute -left-6 top-8 h-28 w-28 rounded-full bg-emerald-300/10 blur-3xl" />
             <div className="absolute -right-8 bottom-6 h-32 w-32 rounded-full bg-amber-300/10 blur-3xl" />
-            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-4 hidden flex-col gap-4 sm:flex-row sm:items-end sm:justify-between lg:flex">
               <div>
                 <div className="text-xs uppercase tracking-[0.22em] text-slate-400">
                   Treasury grid
@@ -735,7 +738,7 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="mb-4 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300">
+            <div className="mb-3 hidden flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-300 lg:flex">
               <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1">
                 Tap piece
               </span>
@@ -829,6 +832,64 @@ export default function GamePage() {
                     );
                   })
                 )}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 lg:hidden">
+              <div className="grid grid-cols-3 gap-2">
+                {pieces.map((piece) => {
+                  const selected = piece.instanceId === selectedPieceId;
+                  const playable = hasAnyValidMove(board, [piece]);
+                  const icon = getFinanceIcon(
+                    piece.shape.accentPattern,
+                    piece.shape.accentLabel
+                  );
+
+                  return (
+                    <button
+                      key={piece.instanceId}
+                      type="button"
+                      onClick={() => handlePieceSelect(piece.instanceId)}
+                      className={[
+                        "finance-piece-card glow-button rounded-2xl border p-2.5 transition",
+                        selected
+                          ? "border-emerald-200/80 bg-gradient-to-br from-emerald-400/14 via-cyan-400/10 to-white/[0.04] shadow-[0_0_30px_rgba(52,211,153,0.12)] ring-2 ring-emerald-300/30"
+                          : "border-white/8 bg-white/[0.03]",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="brand-badge-neutral min-w-0 px-2 py-1 text-[0.7rem]">
+                          {icon}
+                        </span>
+                        <span
+                          className={`h-2.5 w-2.5 rounded-full ${
+                            playable ? "bg-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.7)]" : "bg-rose-300 shadow-[0_0_10px_rgba(253,164,175,0.55)]"
+                          }`}
+                        />
+                      </div>
+                      <div className="mt-2 flex justify-center">
+                        {renderPieceMiniature(piece, `${piece.instanceId}-mobile-grid`)}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="reward-surface-muted px-3 py-3">
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                    Moves
+                  </div>
+                  <div className="mt-1 text-lg font-semibold text-white">{movesUsed}</div>
+                </div>
+                <div className={rewardAvailable ? "reward-surface px-3 py-3 border-amber-300/20" : "reward-surface-muted px-3 py-3"}>
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                    Bonus
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-white">
+                    {rewardAvailable ? `${reward?.value} ready` : "Locked"}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -998,99 +1059,13 @@ export default function GamePage() {
         </aside>
       </div>
 
-      <div className="bottom-action-zone lg:hidden">
-        <div className="mx-auto w-full max-w-3xl space-y-3">
-          {error ? (
-            <div className="animate-fade-up rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-              {error}
-            </div>
-          ) : null}
-
-          <div className="mobile-tray-card px-3 py-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                  Pieces tray
-                </div>
-                <div className="mt-1 text-sm text-slate-300">
-                  Tap to select, then tap or slide on the board to place.
-                </div>
-              </div>
-              <Link
-                to="/dashboard"
-                className="glow-button rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-100"
-              >
-                Dashboard
-              </Link>
-            </div>
-
-            <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
-              {pieces.map((piece) => {
-                const selected = piece.instanceId === selectedPieceId;
-                const playable = hasAnyValidMove(board, [piece]);
-
-                return (
-                  <button
-                    key={piece.instanceId}
-                    type="button"
-                    onClick={() => handlePieceSelect(piece.instanceId)}
-                    className={[
-                      "finance-piece-card glow-button min-w-[10.5rem] rounded-2xl border p-3 text-left transition",
-                      selected
-                        ? "border-emerald-200/80 bg-gradient-to-br from-emerald-400/14 via-cyan-400/10 to-white/[0.04] shadow-[0_0_30px_rgba(52,211,153,0.12)] ring-2 ring-emerald-300/30"
-                        : "border-white/8 bg-white/[0.03]",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-white">
-                        {piece.shape.name}
-                      </span>
-                      <span
-                        className={`rounded-full px-2 py-1 text-[0.68rem] ${
-                          playable
-                            ? "bg-emerald-500/20 text-emerald-100"
-                            : "bg-rose-500/20 text-rose-100"
-                        }`}
-                      >
-                        {playable ? "Valid" : "Blocked"}
-                      </span>
-                    </div>
-
-                    {renderPieceMiniature(piece, `${piece.instanceId}-mobile`)}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
-                    Reward reserve
-                  </div>
-                  <div className="mt-1 text-sm font-semibold text-white">
-                    {rewardAvailable ? `${reward?.type} x${reward?.value}` : "No active reward"}
-                  </div>
-                </div>
-                {rewardAvailable ? (
-                  <span className="brand-badge-bonus">
-                    Ready
-                  </span>
-                ) : null}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => void handleBankAndRestart()}
-                disabled={loading || submitting}
-                className="glow-button min-h-14 w-full rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
-              >
-                Bank score
-              </button>
-            </div>
+      {error ? (
+        <div className="mx-auto mt-4 w-full max-w-3xl px-4 lg:hidden">
+          <div className="animate-fade-up rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
+            {error}
           </div>
         </div>
-      </div>
+      ) : null}
 
       {gameOver ? (
         <div className="safe-bottom-pad fixed inset-0 z-40 flex items-end justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
