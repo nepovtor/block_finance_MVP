@@ -721,7 +721,7 @@ export default function GamePage() {
               </div>
               <div
                 className={[
-                  "w-full rounded-2xl border border-emerald-300/15 bg-emerald-400/10 px-4 py-3 text-left sm:w-auto sm:text-right",
+                  "fintech-score-card w-full rounded-2xl border border-emerald-300/20 px-4 py-3 text-left sm:w-auto sm:text-right",
                   scorePulse ? "animate-score-pop" : "",
                 ].join(" ")}
               >
@@ -729,6 +729,9 @@ export default function GamePage() {
                   Portfolio score
                 </div>
                 <div className="mt-1 text-3xl font-bold text-white">{score}</div>
+                <div className="mt-1 text-[0.72rem] uppercase tracking-[0.18em] text-emerald-50/70">
+                  Cashback momentum
+                </div>
               </div>
             </div>
 
@@ -745,13 +748,13 @@ export default function GamePage() {
             </div>
 
             <div
-              className="mx-auto w-full max-w-full overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.12),_transparent_35%),linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.98))] p-2.5 shadow-2xl shadow-slate-950/60 sm:p-3.5"
+              className="bank-grid-surface mx-auto w-full max-w-full overflow-hidden rounded-[32px] border border-emerald-300/12 p-2.5 shadow-2xl shadow-slate-950/60 sm:p-3.5"
               onTouchStart={handleBoardTouchStart}
               onTouchMove={handleBoardTouchMove}
               onTouchEnd={handleBoardTouchEnd}
               onTouchCancel={handleBoardTouchCancel}
             >
-              <div className="game-board mx-auto grid w-fit rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,23,42,0.78),rgba(3,7,18,0.95))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_60px_rgba(2,6,23,0.55)] sm:p-3">
+              <div className="game-board mx-auto grid w-fit rounded-[26px] border border-emerald-200/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.78),rgba(3,7,18,0.95))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_60px_rgba(2,6,23,0.55)] sm:p-3">
                 {board.map((row, rowIndex) =>
                   row.map((cell, colIndex) => {
                     const key = `${rowIndex}-${colIndex}`;
@@ -856,10 +859,14 @@ export default function GamePage() {
                 <div className="mt-1 font-medium">{movesUsed}</div>
               </div>
             </div>
-            <div className="mt-3 rounded-2xl border border-amber-300/15 bg-[linear-gradient(180deg,rgba(251,191,36,0.16),rgba(16,185,129,0.08))] p-3 text-sm">
+            <div className="reward-surface mt-3 border-amber-300/15 text-sm">
               <div className="text-amber-100/70">Cashback reserve</div>
               <div className="mt-1 font-medium text-white">
                 {rewardAvailable ? `${reward?.type} x${reward?.value}` : "None"}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="bonus-chip bonus-chip-cashback">Cashback</span>
+                <span className="bonus-chip bonus-chip-reward">Bonus hold</span>
               </div>
             </div>
           </div>
@@ -898,7 +905,7 @@ export default function GamePage() {
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-white">{piece.shape.name}</span>
                         {selected ? (
-                          <span className="rounded-full bg-emerald-300/20 px-2 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-emerald-100">
+                          <span className="brand-badge-finance px-2 py-1 text-[0.7rem]">
                             Selected
                           </span>
                         ) : null}
@@ -934,10 +941,10 @@ export default function GamePage() {
 
             <div
               className={[
-                "mt-4 rounded-[22px] border p-4",
+                "mt-4 p-4",
                 rewardAvailable
-                  ? "animate-reward-pop border-amber-300/20 bg-gradient-to-br from-amber-300/20 via-amber-200/10 to-emerald-300/10"
-                  : "border-white/8 bg-white/[0.03]",
+                  ? "reward-surface animate-reward-pop border-amber-300/20"
+                  : "reward-surface-muted",
               ].join(" ")}
             >
               {rewardAvailable ? (
@@ -950,6 +957,10 @@ export default function GamePage() {
                   </div>
                   <div className="text-sm text-slate-300">
                     Saved for this run until you use it.
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className="bonus-chip bonus-chip-cashback">Reward reserve</span>
+                    <span className="bonus-chip bonus-chip-reward">Card bonus</span>
                   </div>
                 </div>
               ) : (
@@ -1062,7 +1073,7 @@ export default function GamePage() {
                   </div>
                 </div>
                 {rewardAvailable ? (
-                  <span className="rounded-full bg-amber-300/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100">
+                  <span className="brand-badge-bonus">
                     Ready
                   </span>
                 ) : null}
@@ -1083,13 +1094,17 @@ export default function GamePage() {
 
       {gameOver ? (
         <div className="safe-bottom-pad fixed inset-0 z-40 flex items-end justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="glass-panel animate-rise-in w-full max-w-md p-5 sm:p-6">
+          <div className="glass-panel animate-rise-in w-full max-w-md border-amber-300/15 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.12),transparent_28%),linear-gradient(180deg,rgba(15,23,42,0.9),rgba(2,6,23,0.98))] p-5 sm:p-6">
             <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Dead End
             </div>
             <h2 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
               {score} points
             </h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="bonus-chip bonus-chip-cashback">Reward checkpoint</span>
+              <span className="bonus-chip bonus-chip-reward">Bank or revive</span>
+            </div>
             <p className="mt-3 text-sm leading-6 text-slate-300">
               None of the current 3 pieces fit on the board. Bank the run, restart
               quickly, or spend your extra move if it is available.

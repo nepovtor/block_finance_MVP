@@ -268,30 +268,22 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-emerald-300/15 bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(34,211,238,0.08),rgba(251,191,36,0.08))] p-5 text-sm text-emerald-100 shadow-lg shadow-emerald-950/20">
-              <div className="text-xs uppercase tracking-[0.2em] text-emerald-200/80">
-                What happens in 15 seconds
-              </div>
-              <div className="mt-3 font-medium">
-                Card payment -&gt; reward appears -&gt; savings/referral story is
-                visible -&gt; open game -&gt; use revive
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.16em] text-emerald-50/85">
-                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
-                  Card spend
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
-                  Cashback reward
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
-                  Puzzle boost
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
-                  Savings quest
-                </span>
+              <div className="rounded-3xl border border-emerald-300/15 bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(34,211,238,0.08),rgba(251,191,36,0.08))] p-5 text-sm text-emerald-100 shadow-lg shadow-emerald-950/20">
+                <div className="text-xs uppercase tracking-[0.2em] text-emerald-200/80">
+                  What happens in 15 seconds
+                </div>
+                <div className="mt-3 font-medium">
+                  Card payment -&gt; reward appears -&gt; savings/referral story is
+                  visible -&gt; open game -&gt; use revive
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.16em] text-emerald-50/85">
+                  <span className="bonus-chip bonus-chip-reward">Card spend</span>
+                  <span className="bonus-chip bonus-chip-cashback">Cashback reward</span>
+                  <span className="bonus-chip bonus-chip-reward">Puzzle boost</span>
+                  <span className="bonus-chip bonus-chip-cashback">Savings quest</span>
+                </div>
               </div>
             </div>
-          </div>
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
@@ -417,12 +409,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div
-                    className={[
-                      "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
-                      challengeCompleted
-                        ? "bg-emerald-400/20 text-emerald-100"
-                        : "bg-white/5 text-slate-300",
-                    ].join(" ")}
+                    className={challengeCompleted ? "brand-badge-finance" : "brand-badge-neutral"}
                   >
                     {challengeCompleted ? "Completed" : `${challengeProgress}/${challengeTarget}`}
                   </div>
@@ -455,7 +442,7 @@ export default function DashboardPage() {
                       Weekend gaming fund
                     </div>
                   </div>
-                  <div className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">
+                  <div className="brand-badge-finance">
                     ${demoProduct.savingsGoalCurrent}/${demoProduct.savingsGoalTarget}
                   </div>
                 </div>
@@ -486,7 +473,7 @@ export default function DashboardPage() {
                   </button>
                 </div>
                 {demoProduct.lastSavingsBonus ? (
-                  <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+                  <div className="mt-4 reward-surface px-4 py-3 text-sm text-amber-100">
                     {demoProduct.lastSavingsBonus}
                   </div>
                 ) : null}
@@ -506,12 +493,7 @@ export default function DashboardPage() {
                   Active reward
                 </div>
                 <div
-                  className={[
-                    "rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]",
-                    hasReward
-                      ? "bg-amber-300/20 text-amber-100"
-                      : "bg-slate-800 text-slate-400",
-                  ].join(" ")}
+                  className={hasReward ? "brand-badge-bonus" : "brand-badge-neutral"}
                 >
                   {hasReward ? "Ready" : "Locked"}
                 </div>
@@ -519,10 +501,10 @@ export default function DashboardPage() {
 
               <div
                 className={[
-                  "mt-4 rounded-[22px] border p-5",
+                  "mt-4 p-5",
                   hasReward
-                    ? "border-amber-300/20 bg-gradient-to-br from-amber-300/20 via-amber-200/10 to-emerald-300/10 shadow-lg shadow-amber-950/20"
-                    : "border-white/8 bg-white/[0.03]",
+                    ? "reward-surface animate-reward-pop border-amber-300/20"
+                    : "reward-surface-muted",
                 ].join(" ")}
               >
                 {hasReward ? (
@@ -538,12 +520,9 @@ export default function DashboardPage() {
                       board state.
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.16em] text-amber-50/85">
-                      <span className="rounded-full border border-amber-100/20 bg-amber-100/10 px-2.5 py-1">
-                        Cashback live
-                      </span>
-                      <span className="rounded-full border border-amber-100/20 bg-amber-100/10 px-2.5 py-1">
-                        Wallet bonus
-                      </span>
+                      <span className="bonus-chip bonus-chip-cashback">Cashback live</span>
+                      <span className="bonus-chip bonus-chip-reward">Wallet bonus</span>
+                      <span className="bonus-chip bonus-chip-cashback">Bonus active</span>
                     </div>
                   </>
                 ) : (
@@ -665,6 +644,11 @@ export default function DashboardPage() {
                 referral adds a viral surface, and motivation feeds a game loop
                 that can drive habit and loyalty.
               </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="bonus-chip bonus-chip-cashback">Bonus wallet</span>
+                <span className="bonus-chip bonus-chip-reward">Progress rails</span>
+                <span className="bonus-chip bonus-chip-cashback">Card-to-reward</span>
+              </div>
             </div>
           </div>
         </div>
