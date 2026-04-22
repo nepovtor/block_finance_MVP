@@ -55,7 +55,7 @@ Default local URLs:
 - backend: `http://localhost:8000`
 - frontend: `http://localhost:5173`
 
-For phone testing on the same Wi-Fi, replace `localhost` with your computer's LAN IP in the frontend `.env` file.
+For phone testing on the same Wi-Fi, replace `localhost` with your computer's LAN IP in the frontend `.env` file. The backend CORS setup already accepts localhost plus common private-network IP ranges such as `192.168.x.x`, `10.x.x.x`, and `172.16-31.x.x`.
 
 ## Run backend
 
@@ -75,7 +75,7 @@ Backend LAN URL example:
 ```bash
 cd frontend_block_finance_mvp
 npm install
-npm run dev
+npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
 The Vite config is set to listen on `0.0.0.0`, so it is reachable from other devices on your local network.
@@ -133,6 +133,19 @@ npm run dev -- --host 0.0.0.0 --port 5173
 - open `http://YOUR_LAN_IP:5173`
 - verify the dashboard loads, `Pay for coffee` works, and the game opens
 - place pieces on the board and confirm there is no horizontal scrolling
+- confirm glowing board anchors appear after selecting a piece
+- confirm placed piece colors stay visible after placement
+
+## Phone demo checklist
+
+1. Dashboard opens on `http://YOUR_LAN_IP:5173`.
+2. `Pay for coffee` succeeds without a network or CORS error.
+3. The reward card updates and shows the new reward.
+4. The game opens from the dashboard.
+5. Tapping a piece, then a glowing board cell, places the piece correctly.
+6. Placed colors and finance overlays remain visible on the board.
+7. If a reward is available, it is visible in the game and can be used from the game-over state.
+8. `Quick restart` or `Save score and play again` starts a fresh run cleanly.
 
 ## Demo scenario
 

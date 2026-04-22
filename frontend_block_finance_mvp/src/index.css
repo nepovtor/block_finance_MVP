@@ -103,17 +103,18 @@
   }
 
   .finance-cell-core {
-    @apply absolute inset-[2px] rounded-[calc(theme(borderRadius.lg)-2px)] bg-white/10;
+    @apply absolute inset-[2px] rounded-[calc(theme(borderRadius.lg)-2px)];
   }
 
   .finance-cell-overlay {
     @apply pointer-events-none absolute inset-[2px] rounded-[calc(theme(borderRadius.lg)-2px)] opacity-90;
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 42%, rgba(15, 23, 42, 0.16));
+      linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.06) 44%, rgba(15, 23, 42, 0.18));
   }
 
   .finance-label {
-    @apply pointer-events-none absolute bottom-1 left-1 right-1 text-center font-semibold tracking-[0.16em] text-slate-950/70;
+    @apply pointer-events-none absolute bottom-1 left-1 right-1 text-center font-semibold tracking-[0.16em];
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.24);
     font-size: clamp(0.42rem, 1.6vw, 0.58rem);
   }
 
@@ -135,7 +136,7 @@
     background:
       radial-gradient(circle at 32% 34%, rgba(255, 255, 255, 0.75) 0 20%, transparent 23%),
       radial-gradient(circle at 68% 64%, rgba(255, 255, 255, 0.55) 0 18%, transparent 21%),
-      radial-gradient(circle at center, rgba(15, 23, 42, 0.22) 0 42%, transparent 45%);
+      radial-gradient(circle at center, rgba(15, 23, 42, 0.18) 0 42%, transparent 45%);
   }
 
   .pattern-bill::before {
@@ -196,7 +197,7 @@
   }
 
   45% {
-    transform: scale(1.08);
+    transform: scale(1.06);
   }
 
   100% {

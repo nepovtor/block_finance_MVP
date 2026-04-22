@@ -16,24 +16,18 @@ npm install
 cp .env.example .env
 ```
 
-3. Start the dev server:
-
-```bash
-npm run dev
-```
-
-The frontend starts on `http://localhost:5173`.
-
-## Expected backend
-
-Set `VITE_API_URL` to the FastAPI server, for example:
+3. Point the frontend to the backend:
 
 ```env
-VITE_API_URL=http://192.168.1.50:8000
+VITE_API_URL=http://YOUR_LAN_IP:8000
 ```
 
-For local-network phone testing, run:
+If you only want laptop-only local testing, `VITE_API_URL=http://localhost:8000` also works.
+
+4. Start the dev server:
 
 ```bash
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
+
+The frontend starts on `http://localhost:5173` on your computer and is also reachable on `http://YOUR_LAN_IP:5173` from a phone on the same Wi-Fi network.

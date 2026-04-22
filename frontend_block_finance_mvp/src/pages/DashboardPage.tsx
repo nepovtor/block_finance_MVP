@@ -76,10 +76,11 @@ export default function DashboardPage() {
         <div className="glass-panel animate-rise-in bg-grid relative overflow-hidden p-6 sm:p-8">
           <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-emerald-400/10 blur-3xl" />
           <div className="absolute bottom-0 left-10 h-24 w-24 rounded-full bg-amber-300/10 blur-3xl" />
+          <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/55 to-transparent" />
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <div className="text-sm uppercase tracking-[0.28em] text-emerald-200">
-                Dashboard
+                Banking dashboard
               </div>
               <h1 className="mt-3 text-3xl font-bold text-white sm:text-5xl">
                 Hi, {user.name}
@@ -91,13 +92,24 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-emerald-300/15 bg-emerald-400/10 p-5 text-sm text-emerald-100 shadow-lg shadow-emerald-950/20">
+            <div className="rounded-3xl border border-emerald-300/15 bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(34,211,238,0.08),rgba(251,191,36,0.08))] p-5 text-sm text-emerald-100 shadow-lg shadow-emerald-950/20">
               <div className="text-xs uppercase tracking-[0.2em] text-emerald-200/80">
                 Live demo flow
               </div>
               <div className="mt-3 font-medium">
                 Pay for coffee -&gt; reward appears -&gt; open game -&gt; use
                 revive
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.16em] text-emerald-50/85">
+                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
+                  Card spend
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
+                  Cashback reward
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1">
+                  Puzzle boost
+                </span>
               </div>
             </div>
           </div>
@@ -234,6 +246,14 @@ export default function DashboardPage() {
                       This gives the player one rescue reroll after a dead-end
                       board state.
                     </div>
+                    <div className="mt-4 flex flex-wrap gap-2 text-[0.68rem] uppercase tracking-[0.16em] text-amber-50/85">
+                      <span className="rounded-full border border-amber-100/20 bg-amber-100/10 px-2.5 py-1">
+                        Cashback live
+                      </span>
+                      <span className="rounded-full border border-amber-100/20 bg-amber-100/10 px-2.5 py-1">
+                        Wallet bonus
+                      </span>
+                    </div>
                   </>
                 ) : (
                   <div className="text-sm leading-6 text-slate-400">
@@ -247,7 +267,7 @@ export default function DashboardPage() {
                 <button
                   onClick={handleCoffeePayment}
                   disabled={loading}
-                  className="glow-button min-h-14 rounded-2xl bg-emerald-400 px-4 py-4 font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                  className="glow-button min-h-14 rounded-2xl bg-gradient-to-r from-emerald-300 via-emerald-400 to-amber-300 px-4 py-4 font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                 >
                   {loading ? "Processing payment..." : "Pay for coffee"}
                 </button>
