@@ -36,6 +36,17 @@ type HoveredCell = {
   col: number;
 } | null;
 
+type DragState = {
+  pieceId: string;
+  pointerId: number;
+  clientX: number;
+  clientY: number;
+  width: number;
+  height: number;
+  offsetX: number;
+  offsetY: number;
+};
+
 const PIECE_TONE_BY_CLASS: Record<
   string,
   {
@@ -246,14 +257,14 @@ function buildFreshGameState() {
 
 function getSelectionStatus(piece: Piece | null, board: Board) {
   if (!piece) {
-    return "Tap a piece in the tray, then tap a glowing board cell to place it.";
+    return "Drag a piece onto the board to place it.";
   }
 
   if (!hasAnyValidMove(board, [piece])) {
     return `${piece.shape.name} is blocked right now. Choose another piece or save your reward for a dead end.`;
   }
 
-  return `${piece.shape.name} selected. Tap or slide over glowing board cells to preview placement.`;
+  return `${piece.shape.name} selected. Drag it onto the board to preview placement.`;
 }
 
 function renderPieceMiniature(piece: Piece, keyPrefix: string) {
@@ -320,6 +331,7 @@ export default function GamePage() {
   const [invalidMovePulse, setInvalidMovePulse] = useState(false);
   const [lastInvalidCellKey, setLastInvalidCellKey] = useState<string | null>(null);
   const [touchPreviewActive, setTouchPreviewActive] = useState(false);
+  const [dragState, setDragState] = useState<DragState | null>(null);
 
   const selectedPiece =
     pieces.find((piece) => piece.instanceId === selectedPieceId) ?? null;
@@ -441,6 +453,77 @@ export default function GamePage() {
     return () => window.clearTimeout(timeoutId);
   }, [lastInvalidCellKey]);
 
+  useEffect(() => {
+    if (!dragState) {
+      return;
+    }
+
+    const activeDrag = dragState;
+
+    function handlePointerMove(event: PointerEvent) {
+      if (event.pointerId !== activeDrag.pointerId) {
+        return;
+      }
+
+      setDragState((current) =>
+        current
+          ? {
+              ...current,
+              clientX: event.clientX,
+              clientY: event.clientY,
+            }
+          : current
+      );
+      setTouchPreviewActive(true);
+      updateTouchPreview(event.clientX, event.clientY);
+      event.preventDefault();
+    }
+
+    function handlePointerUp(event: PointerEvent) {
+      if (event.pointerId !== activeDrag.pointerId) {
+        return;
+      }
+
+      const cell = getTouchBoardCell(event.clientX, event.clientY);
+      const draggedPiece =
+        pieces.find((piece) => piece.instanceId === activeDrag.pieceId) ?? null;
+
+      setDragState(null);
+      setTouchPreviewActive(false);
+
+      if (!draggedPiece) {
+        setHoveredCell(null);
+        return;
+      }
+
+      setSelectedPieceId(draggedPiece.instanceId);
+
+      if (cell && canPlaceShape(board, draggedPiece.shape, cell.row, cell.col)) {
+        placeSelectedPieceAt(draggedPiece, cell.row, cell.col);
+        return;
+      }
+
+      if (cell) {
+        const cellKey = `${cell.row}-${cell.col}`;
+        setError("That piece does not fit there");
+        setInvalidMovePulse(true);
+        setLastInvalidCellKey(cellKey);
+      }
+
+      setHoveredCell(null);
+    }
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+    };
+  }, [board, dragState, pieces]);
+
   async function bankCurrentRun() {
     if (gameSessionId === null) {
       return;
@@ -543,6 +626,33 @@ export default function GamePage() {
     );
   }
 
+  function handlePieceDragStart(
+    pieceId: string,
+    event: React.PointerEvent<HTMLButtonElement>
+  ) {
+    if (loading || submitting) {
+      return;
+    }
+
+    const target = event.currentTarget;
+    const rect = target.getBoundingClientRect();
+
+    setSelectedPieceId(pieceId);
+    setError("");
+    setDragState({
+      pieceId,
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      width: rect.width,
+      height: rect.height,
+      offsetX: event.clientX - rect.left,
+      offsetY: event.clientY - rect.top,
+    });
+    setTouchPreviewActive(true);
+    updateTouchPreview(event.clientX, event.clientY);
+  }
+
   function getTouchBoardCell(clientX: number, clientY: number) {
     if (typeof document === "undefined") {
       return null;
@@ -570,44 +680,40 @@ export default function GamePage() {
     setHoveredCell(cell);
   }
 
-  function handleBoardTouchStart(event: React.TouchEvent<HTMLDivElement>) {
-    if (!selectedPiece) {
-      return;
-    }
+  function placeSelectedPieceAt(piece: Piece, row: number, col: number) {
+    const move = placeShape(board, piece.shape, row, col);
+    const remainingPieces = pieces.filter(
+      (currentPiece) => currentPiece.instanceId !== piece.instanceId
+    );
+    const nextPieces =
+      remainingPieces.length === 0 ? createPieceBatch() : remainingPieces;
 
-    setTouchPreviewActive(true);
-    const touch = event.touches[0];
-
-    if (touch) {
-      updateTouchPreview(touch.clientX, touch.clientY);
-    }
-  }
-
-  function handleBoardTouchMove(event: React.TouchEvent<HTMLDivElement>) {
-    if (!selectedPiece) {
-      return;
-    }
-
-    const touch = event.touches[0];
-
-    if (touch) {
-      updateTouchPreview(touch.clientX, touch.clientY);
-      event.preventDefault();
-    }
-  }
-
-  function handleBoardTouchEnd() {
-    if (selectedPiece && hoveredCell) {
-      suppressNextBoardClickRef.current = true;
-      handleBoardClick(hoveredCell.row, hoveredCell.col);
-    }
-
-    setTouchPreviewActive(false);
-  }
-
-  function handleBoardTouchCancel() {
-    setTouchPreviewActive(false);
+    setBoard(move.board);
+    setScore((current) => current + move.scoreGained);
+    setMovesUsed((current) => current + 1);
+    setPieces(nextPieces);
+    setSelectedPieceId(nextPieces[0]?.instanceId ?? null);
     setHoveredCell(null);
+    setScorePulse(true);
+
+    if (move.clearedRows.length > 0 || move.clearedCols.length > 0) {
+      setBoardFlash(true);
+      setStatusText(
+        `Clean clear: ${move.clearedRows.length} row(s) and ${move.clearedCols.length} column(s) removed.`
+      );
+    } else if (remainingPieces.length === 0) {
+      setStatusText(
+        `Placed ${piece.shape.name} for +${move.scoreGained} points. Fresh pieces dealt.`
+      );
+    } else {
+      const nextSelected = nextPieces[0];
+      setStatusText(
+        `Placed ${piece.shape.name} for +${move.scoreGained} points. ${getSelectionStatus(
+          nextSelected ?? null,
+          move.board
+        )}`
+      );
+    }
   }
 
   function handleBoardClick(row: number, col: number) {
@@ -635,40 +741,7 @@ export default function GamePage() {
     }
 
     setError("");
-
-    const move = placeShape(board, selectedPiece.shape, row, col);
-    const remainingPieces = pieces.filter(
-      (piece) => piece.instanceId !== selectedPiece.instanceId
-    );
-    const nextPieces =
-      remainingPieces.length === 0 ? createPieceBatch() : remainingPieces;
-
-    setBoard(move.board);
-    setScore((current) => current + move.scoreGained);
-    setMovesUsed((current) => current + 1);
-    setPieces(nextPieces);
-    setSelectedPieceId(nextPieces[0]?.instanceId ?? null);
-    setHoveredCell(null);
-    setScorePulse(true);
-
-    if (move.clearedRows.length > 0 || move.clearedCols.length > 0) {
-      setBoardFlash(true);
-      setStatusText(
-        `Clean clear: ${move.clearedRows.length} row(s) and ${move.clearedCols.length} column(s) removed.`
-      );
-    } else if (remainingPieces.length === 0) {
-      setStatusText(
-        `Placed ${selectedPiece.shape.name} for +${move.scoreGained} points. Fresh pieces dealt.`
-      );
-    } else {
-      const nextSelected = nextPieces[0];
-      setStatusText(
-        `Placed ${selectedPiece.shape.name} for +${move.scoreGained} points. ${getSelectionStatus(
-          nextSelected ?? null,
-          move.board
-        )}`
-      );
-    }
+    placeSelectedPieceAt(selectedPiece, row, col);
   }
 
   const previewCellMap = new Map(
@@ -770,10 +843,6 @@ export default function GamePage() {
 
             <div
               className="bank-grid-surface mx-auto w-full max-w-full overflow-hidden rounded-[32px] border border-emerald-300/12 p-2.5 shadow-2xl shadow-slate-950/60 sm:p-3.5"
-              onTouchStart={handleBoardTouchStart}
-              onTouchMove={handleBoardTouchMove}
-              onTouchEnd={handleBoardTouchEnd}
-              onTouchCancel={handleBoardTouchCancel}
             >
               <div className="game-board mx-auto grid w-fit rounded-[26px] border border-emerald-200/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.08),transparent_32%),linear-gradient(180deg,rgba(15,23,42,0.78),rgba(3,7,18,0.95))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_60px_rgba(2,6,23,0.55)] sm:p-3">
                 {board.map((row, rowIndex) =>
@@ -781,7 +850,6 @@ export default function GamePage() {
                     const key = `${rowIndex}-${colIndex}`;
                     const previewState = previewCellMap.get(key);
                     const occupied = cell !== null;
-                    const validAnchor = validAnchorKeys.has(key) && !occupied;
                     const invalidTap = lastInvalidCellKey === key;
 
                     const previewClass =
@@ -793,9 +861,7 @@ export default function GamePage() {
 
                     const occupiedClass = occupied
                       ? "border-white/10 bg-slate-900/55 shadow-[0_0_18px_rgba(255,255,255,0.04)]"
-                      : validAnchor
-                        ? "border-amber-200/45 bg-[linear-gradient(180deg,rgba(51,65,85,0.92),rgba(15,23,42,0.98))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_22px_rgba(251,191,36,0.14)]"
-                        : "border-white/6 bg-[linear-gradient(180deg,rgba(51,65,85,0.72),rgba(15,23,42,0.94))] hover:border-slate-500/80";
+                      : "border-white/6 bg-[linear-gradient(180deg,rgba(51,65,85,0.72),rgba(15,23,42,0.94))] hover:border-slate-500/80";
 
                     return (
                       <button
@@ -838,14 +904,6 @@ export default function GamePage() {
                               "top-[18%]"
                             )
                           : null}
-                        {!occupied && validAnchor && previewState === undefined ? (
-                          <span
-                            className="pointer-events-none absolute inset-0 flex items-center justify-center"
-                            aria-hidden="true"
-                          >
-                            <span className="h-2.5 w-2.5 rounded-full bg-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.85)]" />
-                          </span>
-                        ) : null}
                       </button>
                     );
                   })
@@ -868,6 +926,9 @@ export default function GamePage() {
                       key={piece.instanceId}
                       type="button"
                       onClick={() => handlePieceSelect(piece.instanceId)}
+                      onPointerDown={(event) =>
+                        handlePieceDragStart(piece.instanceId, event)
+                      }
                       className={[
                         "finance-piece-card glow-button rounded-2xl border p-2.5 transition",
                         selected
@@ -981,6 +1042,9 @@ export default function GamePage() {
                     key={piece.instanceId}
                     type="button"
                     onClick={() => handlePieceSelect(piece.instanceId)}
+                    onPointerDown={(event) =>
+                      handlePieceDragStart(piece.instanceId, event)
+                    }
                     className={[
                       "finance-piece-card glow-button rounded-2xl border p-4 text-left transition",
                       selected
@@ -1153,6 +1217,31 @@ export default function GamePage() {
           </div>
         </div>
       ) : null}
+
+      {dragState
+        ? (() => {
+            const draggedPiece =
+              pieces.find((piece) => piece.instanceId === dragState.pieceId) ?? null;
+
+            if (!draggedPiece) {
+              return null;
+            }
+
+            return (
+              <div
+                className="pointer-events-none fixed left-0 top-0 z-50"
+                style={{
+                  transform: `translate(${dragState.clientX - dragState.offsetX}px, ${dragState.clientY - dragState.offsetY}px)`,
+                  width: dragState.width,
+                }}
+              >
+                <div className="finance-piece-card rounded-2xl border border-emerald-200/40 bg-slate-900/90 p-3 shadow-[0_18px_40px_rgba(2,6,23,0.45)] backdrop-blur-xl">
+                  {renderPieceMiniature(draggedPiece, `${draggedPiece.instanceId}-drag`)}
+                </div>
+              </div>
+            );
+          })()
+        : null}
     </div>
   );
 }
