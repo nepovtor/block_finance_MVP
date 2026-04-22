@@ -30,6 +30,16 @@ export type FinishGameResponse = {
   extra_moves_used: number;
 };
 
+export type RewardUseResponse = {
+  reward_used: boolean;
+  reward: {
+    id: number;
+    type: string;
+    value: number;
+    source: string;
+  };
+};
+
 export async function makeDemoPayment() {
   return apiFetch<DemoPaymentResponse>("/transactions/demo", {
     method: "POST",
@@ -51,9 +61,23 @@ export async function startGameSession() {
   });
 }
 
-export async function finishGameSession(sessionId: number, score: number) {
+export async function useReward(rewardType: string) {
+  return apiFetch<RewardUseResponse>(
+    `/rewards/use?user_id=${DEMO_USER_ID}&reward_type=${rewardType}`,
+    {
+      method: "POST",
+    }
+  );
+}
+
+export async function finishGameSession(
+  sessionId: number,
+  score: number,
+  movesUsed: number,
+  extraMovesUsed: number
+) {
   return apiFetch<FinishGameResponse>(
-    `/game/finish?session_id=${sessionId}&score=${score}`,
+    `/game/finish?session_id=${sessionId}&score=${score}&moves_used=${movesUsed}&extra_moves_used=${extraMovesUsed}`,
     {
       method: "POST",
     }

@@ -3,7 +3,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.game_session import GameSession
-from app.models.reward import Reward
 from app.models.user import User
 
 
@@ -14,7 +13,13 @@ async def start_game(session: AsyncSession, user_id: int):
     return {"session_id": gs.id}
 
 
-async def finish_game(session: AsyncSession, session_id: int, score: int):
+async def finish_game(
+    session: AsyncSession,
+    session_id: int,
+    score: int,
+    moves_used: int = 0,
+    extra_moves_used: int = 0,
+):
     gs = await session.scalar(select(GameSession).where(GameSession.id == session_id))
     if gs is None:
         raise HTTPException(status_code=404, detail="Game session not found")
@@ -23,19 +28,12 @@ async def finish_game(session: AsyncSession, session_id: int, score: int):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    rewards = await session.execute(
-        select(Reward).where(Reward.user_id == gs.user_id, Reward.type == "extra_move", Reward.is_used == False)
-    )
-    extra_moves = rewards.scalars().all()
-
-    for r in extra_moves:
-        r.is_used = True
-
-    xp_gain = score + len(extra_moves) * 10
+    xp_gain = score + extra_moves_used * 10
+    gs.moves_used = moves_used
     gs.score = score
-    gs.extra_moves_used = len(extra_moves)
+    gs.extra_moves_used = extra_moves_used
     user.xp += xp_gain
 
     await session.commit()
 
-    return {"xp_gained": xp_gain, "extra_moves_used": len(extra_moves)}
+    return {"xp_gained": xp_gain, "extra_moves_used": extra_moves_used}

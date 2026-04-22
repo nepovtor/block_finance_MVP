@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.transactions import router as transaction_router
 from app.api.game import router as game_router
+from app.api.rewards import router as reward_router
 from app.api.users import router as user_router
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
@@ -72,6 +73,7 @@ def create_app() -> FastAPI:
 
     app.include_router(transaction_router)
     app.include_router(game_router)
+    app.include_router(reward_router)
     app.include_router(user_router)
 
     return app
