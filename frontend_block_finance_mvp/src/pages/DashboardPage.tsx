@@ -152,9 +152,104 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip p-4 text-slate-100">
+    <div className="page-with-bottom-action min-h-screen overflow-x-clip p-4 text-slate-100">
       <div className="mx-auto max-w-6xl space-y-5">
-        <div className="glass-panel animate-rise-in bg-grid relative overflow-hidden p-6 sm:p-8">
+        <div className="space-y-4 md:hidden">
+          <div className="glass-panel animate-rise-in bg-grid relative overflow-hidden p-5">
+            <div className="text-xs uppercase tracking-[0.24em] text-emerald-200">
+              Banking + game loop
+            </div>
+            <h1 className="mt-3 text-3xl font-bold text-white">Hi, {user.name}</h1>
+            <p className="mt-3 text-base leading-7 text-slate-300">
+              Pay with your card, unlock a game reward instantly, then use it to
+              improve the run.
+            </p>
+          </div>
+
+          <div className="glass-panel p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Today at a glance
+                </div>
+                <div className="mt-2 text-lg font-semibold text-white">
+                  Three things matter right now
+                </div>
+              </div>
+              <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs uppercase tracking-[0.16em] text-slate-300">
+                {profileLoading ? "Syncing" : "Ready"}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-white">Daily challenge</span>
+                  <span className="text-sm text-slate-300">
+                    {challengeProgress}/{challengeTarget}
+                  </span>
+                </div>
+                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-emerald-400 to-amber-300 transition-all duration-500"
+                    style={{ width: `${(challengeProgress / challengeTarget) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-white">Savings goal</span>
+                  <span className="text-sm text-slate-300">
+                    ${demoProduct.savingsGoalCurrent}/${demoProduct.savingsGoalTarget}
+                  </span>
+                </div>
+                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-300 via-emerald-400 to-cyan-300 transition-all duration-500"
+                    style={{ width: `${savingsProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-white">Reward status</span>
+                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs uppercase tracking-[0.16em] text-amber-100">
+                    {hasReward ? "Ready" : "Locked"}
+                  </span>
+                </div>
+                <div className="mt-2 text-sm text-slate-200">
+                  {hasReward
+                    ? `${reward?.type} x${reward?.value} is waiting for the next game run.`
+                    : "Make one payment to light up the reward card."}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="glass-panel p-5">
+            <div className="text-xs uppercase tracking-[0.18em] text-emerald-200">
+              How it works
+            </div>
+            <div className="mt-3 grid gap-3">
+              {[
+                "1. Pay for coffee",
+                "2. Unlock extra move",
+                "3. Open the game and use it",
+              ].map((step) => (
+                <div
+                  key={step}
+                  className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm text-slate-200"
+                >
+                  {step}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-panel animate-rise-in bg-grid relative hidden overflow-hidden p-6 sm:p-8 md:block">
           <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-emerald-400/10 blur-3xl" />
           <div className="absolute bottom-0 left-10 h-24 w-24 rounded-full bg-amber-300/10 blur-3xl" />
           <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/55 to-transparent" />
@@ -459,7 +554,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="mt-4 hidden gap-3 sm:grid-cols-2 md:grid">
                 <button
                   onClick={handleCoffeePayment}
                   disabled={loading}
@@ -579,6 +674,25 @@ export default function DashboardPage() {
             {error}
           </div>
         ) : null}
+      </div>
+
+      <div className="bottom-action-zone lg:hidden">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 sm:flex-row">
+          <button
+            onClick={handleCoffeePayment}
+            disabled={loading}
+            className="glow-button min-h-14 flex-1 rounded-2xl bg-gradient-to-r from-emerald-300 via-emerald-400 to-amber-300 px-4 py-4 font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+          >
+            {loading ? "Processing payment..." : "Pay for coffee"}
+          </button>
+
+          <Link
+            to="/game"
+            className="glow-button flex min-h-14 flex-1 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-center font-semibold text-white"
+          >
+            Play game
+          </Link>
+        </div>
       </div>
     </div>
   );

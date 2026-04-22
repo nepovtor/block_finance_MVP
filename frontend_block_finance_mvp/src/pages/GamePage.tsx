@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -205,19 +205,60 @@ function buildFreshGameState() {
 
 function getSelectionStatus(piece: Piece | null, board: Board) {
   if (!piece) {
-    return "Tap a piece below, then tap a glowing board cell to place it.";
+    return "Tap a piece in the tray, then tap a glowing board cell to place it.";
   }
 
   if (!hasAnyValidMove(board, [piece])) {
     return `${piece.shape.name} is blocked right now. Choose another piece or save your reward for a dead end.`;
   }
 
-  return `${piece.shape.name} selected. Tap any glowing board cell to place it.`;
+  return `${piece.shape.name} selected. Tap or slide over glowing board cells to preview placement.`;
+}
+
+function renderPieceMiniature(piece: Piece, keyPrefix: string) {
+  const bounds = getShapeBounds(piece.shape);
+
+  return (
+    <div
+      className="mt-3 inline-grid gap-1 rounded-2xl border border-white/6 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.92))] p-2"
+      style={{
+        gridTemplateColumns: `repeat(${bounds.width}, minmax(0, 1fr))`,
+      }}
+    >
+      {Array.from({ length: bounds.height * bounds.width }).map((_, cellIndex) => {
+        const cellRow = Math.floor(cellIndex / bounds.width);
+        const cellCol = cellIndex % bounds.width;
+        const active = piece.shape.cells.some(
+          (cell) => cell.row === cellRow && cell.col === cellCol
+        );
+
+        return (
+          <div
+            key={`${keyPrefix}-${cellIndex}`}
+            className={[
+              "finance-cell relative h-7 w-7 rounded-lg border border-white/5",
+              active ? "bg-slate-900/45" : "bg-slate-800/90",
+            ].join(" ")}
+          >
+            {active
+              ? renderFinanceCell(
+                  piece.shape.color,
+                  piece.shape.accentLabel,
+                  piece.shape.accentPattern,
+                  "top-[20%]"
+                )
+              : null}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function GamePage() {
   const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
     useAppStore();
+  const suppressNextBoardClickRef = useRef(false);
 
   const [board, setBoard] = useState<Board>(() => createBoard());
   const [pieces, setPieces] = useState<Piece[]>(() => createPieceBatch());
@@ -237,6 +278,7 @@ export default function GamePage() {
   const [boardFlash, setBoardFlash] = useState(false);
   const [invalidMovePulse, setInvalidMovePulse] = useState(false);
   const [lastInvalidCellKey, setLastInvalidCellKey] = useState<string | null>(null);
+  const [touchPreviewActive, setTouchPreviewActive] = useState(false);
 
   const selectedPiece =
     pieces.find((piece) => piece.instanceId === selectedPieceId) ?? null;
@@ -460,6 +502,73 @@ export default function GamePage() {
     );
   }
 
+  function getTouchBoardCell(clientX: number, clientY: number) {
+    if (typeof document === "undefined") {
+      return null;
+    }
+
+    const element = document.elementFromPoint(clientX, clientY);
+    const cell = element?.closest<HTMLButtonElement>("[data-board-cell='true']");
+
+    if (!cell) {
+      return null;
+    }
+
+    const row = Number(cell.dataset.row);
+    const col = Number(cell.dataset.col);
+
+    if (Number.isNaN(row) || Number.isNaN(col)) {
+      return null;
+    }
+
+    return { row, col };
+  }
+
+  function updateTouchPreview(clientX: number, clientY: number) {
+    const cell = getTouchBoardCell(clientX, clientY);
+    setHoveredCell(cell);
+  }
+
+  function handleBoardTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    if (!selectedPiece) {
+      return;
+    }
+
+    setTouchPreviewActive(true);
+    const touch = event.touches[0];
+
+    if (touch) {
+      updateTouchPreview(touch.clientX, touch.clientY);
+    }
+  }
+
+  function handleBoardTouchMove(event: React.TouchEvent<HTMLDivElement>) {
+    if (!selectedPiece) {
+      return;
+    }
+
+    const touch = event.touches[0];
+
+    if (touch) {
+      updateTouchPreview(touch.clientX, touch.clientY);
+      event.preventDefault();
+    }
+  }
+
+  function handleBoardTouchEnd() {
+    if (selectedPiece && hoveredCell) {
+      suppressNextBoardClickRef.current = true;
+      handleBoardClick(hoveredCell.row, hoveredCell.col);
+    }
+
+    setTouchPreviewActive(false);
+  }
+
+  function handleBoardTouchCancel() {
+    setTouchPreviewActive(false);
+    setHoveredCell(null);
+  }
+
   function handleBoardClick(row: number, col: number) {
     const cellKey = `${row}-${col}`;
 
@@ -478,7 +587,7 @@ export default function GamePage() {
       setHoveredCell({ row, col });
       setStatusText(
         validAnchorKeys.size > 0
-          ? "That spot is blocked. Tap one of the glowing board cells for a valid placement."
+          ? "That spot is blocked. Glowing cells are valid placements."
           : `${selectedPiece.shape.name} has no open placement on the board.`
       );
       return;
@@ -526,7 +635,7 @@ export default function GamePage() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-clip text-slate-100">
+    <div className="page-with-bottom-action min-h-screen overflow-x-clip text-slate-100">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 p-4 lg:flex-row lg:items-start">
         <section className="flex flex-1 flex-col items-center space-y-4">
           <div className="glass-panel animate-rise-in w-full max-w-3xl p-5 sm:p-6">
@@ -543,7 +652,7 @@ export default function GamePage() {
                   the right moment.
                 </p>
               </div>
-              <div className="flex flex-col gap-2 sm:items-end">
+              <div className="hidden flex-col gap-2 sm:items-end lg:flex">
                 <div className="rounded-full border border-amber-300/15 bg-amber-300/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-amber-100">
                   {rewardAvailable ? "Reward ready" : "Reward locked"}
                 </div>
@@ -561,7 +670,32 @@ export default function GamePage() {
                 {statusText}
               </div>
               <div className="rounded-2xl border border-emerald-300/15 bg-gradient-to-r from-emerald-400/10 to-cyan-400/10 px-4 py-3 text-sm text-emerald-50">
-                {getSelectionStatus(selectedPiece, board)}
+                {touchPreviewActive
+                  ? "Slide across the board, then release to place the selected piece."
+                  : getSelectionStatus(selectedPiece, board)}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:hidden">
+              <div className="stat-tile">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                  Score
+                </div>
+                <div className="mt-2 text-2xl font-bold text-white">{score}</div>
+              </div>
+              <div className="stat-tile">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                  Moves
+                </div>
+                <div className="mt-2 text-2xl font-bold text-white">{movesUsed}</div>
+              </div>
+              <div className="stat-tile">
+                <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                  Reward
+                </div>
+                <div className="mt-2 text-sm font-semibold text-white">
+                  {rewardAvailable ? `${reward?.type} x${reward?.value}` : "Locked"}
+                </div>
               </div>
             </div>
           </div>
@@ -603,85 +737,101 @@ export default function GamePage() {
                 Tap piece
               </span>
               <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1">
-                Tap glowing cell
+                Tap or slide on board
               </span>
               <span className="rounded-full border border-amber-300/15 bg-amber-300/10 px-3 py-1 text-amber-100">
-                Finance overlays stay on placed blocks
+                Glowing cells are valid
               </span>
             </div>
 
-            <div className="mx-auto w-full max-w-full overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.12),_transparent_35%),linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.98))] p-2.5 shadow-2xl shadow-slate-950/60 sm:p-3.5">
+            <div
+              className="mx-auto w-full max-w-full overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.12),_transparent_35%),linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.98))] p-2.5 shadow-2xl shadow-slate-950/60 sm:p-3.5"
+              onTouchStart={handleBoardTouchStart}
+              onTouchMove={handleBoardTouchMove}
+              onTouchEnd={handleBoardTouchEnd}
+              onTouchCancel={handleBoardTouchCancel}
+            >
               <div className="game-board mx-auto grid w-fit rounded-[26px] border border-white/6 bg-[linear-gradient(180deg,rgba(15,23,42,0.78),rgba(3,7,18,0.95))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_60px_rgba(2,6,23,0.55)] sm:p-3">
-              {board.map((row, rowIndex) =>
-                row.map((cell, colIndex) => {
-                  const key = `${rowIndex}-${colIndex}`;
-                  const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
-                  const occupied = cell !== null;
-                  const validAnchor = validAnchorKeys.has(key) && !occupied;
-                  const invalidTap = lastInvalidCellKey === key;
+                {board.map((row, rowIndex) =>
+                  row.map((cell, colIndex) => {
+                    const key = `${rowIndex}-${colIndex}`;
+                    const previewState = previewCellMap.get(key);
+                    const occupied = cell !== null;
+                    const validAnchor = validAnchorKeys.has(key) && !occupied;
+                    const invalidTap = lastInvalidCellKey === key;
 
-                  const previewClass =
-                    previewState === undefined
-                      ? ""
-                      : previewState
-                        ? "ring-2 ring-emerald-100/80 ring-offset-1 ring-offset-slate-950"
-                        : "bg-rose-500/80 ring-2 ring-rose-200/70";
+                    const previewClass =
+                      previewState === undefined
+                        ? ""
+                        : previewState
+                          ? "ring-2 ring-emerald-100/80 ring-offset-1 ring-offset-slate-950"
+                          : "bg-rose-500/80 ring-2 ring-rose-200/70";
 
-                  const occupiedClass = occupied
-                    ? "border-white/10 bg-slate-900/55 shadow-[0_0_18px_rgba(255,255,255,0.04)]"
-                    : validAnchor
-                      ? "border-amber-200/35 bg-[linear-gradient(180deg,rgba(51,65,85,0.92),rgba(15,23,42,0.98))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_18px_rgba(251,191,36,0.08)]"
-                      : "border-white/6 bg-[linear-gradient(180deg,rgba(51,65,85,0.72),rgba(15,23,42,0.94))] hover:border-slate-500/80";
+                    const occupiedClass = occupied
+                      ? "border-white/10 bg-slate-900/55 shadow-[0_0_18px_rgba(255,255,255,0.04)]"
+                      : validAnchor
+                        ? "border-amber-200/45 bg-[linear-gradient(180deg,rgba(51,65,85,0.92),rgba(15,23,42,0.98))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_22px_rgba(251,191,36,0.14)]"
+                        : "border-white/6 bg-[linear-gradient(180deg,rgba(51,65,85,0.72),rgba(15,23,42,0.94))] hover:border-slate-500/80";
 
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={loading || submitting}
-                      onMouseEnter={() => setHoveredCell({ row: rowIndex, col: colIndex })}
-                      onFocus={() => setHoveredCell({ row: rowIndex, col: colIndex })}
-                      onMouseLeave={() => setHoveredCell(null)}
-                      onBlur={() => setHoveredCell(null)}
-                      onClick={() => handleBoardClick(rowIndex, colIndex)}
-                      className={[
-                        "finance-cell relative rounded-xl border transition duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-200/70",
-                        "h-[var(--board-cell-size)] w-[var(--board-cell-size)] touch-manipulation",
-                        occupiedClass,
-                        previewClass,
-                        invalidTap ? "ring-2 ring-rose-300/80" : "",
-                      ].join(" ")}
-                      aria-label={
-                        occupied
-                          ? `Occupied cell ${rowIndex + 1}, ${colIndex + 1}`
-                          : `Place at row ${rowIndex + 1}, column ${colIndex + 1}`
-                      }
-                    >
-                      {occupied
-                        ? renderFinanceCell(
-                            cell.color,
-                            cell.accentLabel,
-                            cell.accentPattern,
-                            "top-[18%]"
-                          )
-                        : null}
-                      {!occupied && validAnchor && previewState === undefined ? (
-                        <span
-                          className="pointer-events-none absolute inset-0 flex items-center justify-center"
-                          aria-hidden="true"
-                        >
-                          <span className="h-2.5 w-2.5 rounded-full bg-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.85)]" />
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })
-              )}
-            </div>
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        disabled={loading || submitting}
+                        onMouseEnter={() => setHoveredCell({ row: rowIndex, col: colIndex })}
+                        onFocus={() => setHoveredCell({ row: rowIndex, col: colIndex })}
+                        onMouseLeave={() => setHoveredCell(null)}
+                        onBlur={() => setHoveredCell(null)}
+                        onClick={() => {
+                          if (suppressNextBoardClickRef.current) {
+                            suppressNextBoardClickRef.current = false;
+                            return;
+                          }
+
+                          handleBoardClick(rowIndex, colIndex);
+                        }}
+                        data-board-cell="true"
+                        data-row={rowIndex}
+                        data-col={colIndex}
+                        className={[
+                          "finance-cell relative rounded-xl border transition duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-200/70",
+                          "h-[var(--board-cell-size)] w-[var(--board-cell-size)] touch-manipulation",
+                          occupiedClass,
+                          previewClass,
+                          invalidTap ? "ring-2 ring-rose-300/80" : "",
+                        ].join(" ")}
+                        aria-label={
+                          occupied
+                            ? `Occupied cell ${rowIndex + 1}, ${colIndex + 1}`
+                            : `Place at row ${rowIndex + 1}, column ${colIndex + 1}`
+                        }
+                      >
+                        {occupied
+                          ? renderFinanceCell(
+                              cell.color,
+                              cell.accentLabel,
+                              cell.accentPattern,
+                              "top-[18%]"
+                            )
+                          : null}
+                        {!occupied && validAnchor && previewState === undefined ? (
+                          <span
+                            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                            aria-hidden="true"
+                          >
+                            <span className="h-2.5 w-2.5 rounded-full bg-amber-200 shadow-[0_0_14px_rgba(251,191,36,0.85)]" />
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </section>
 
-        <aside className="w-full max-w-sm space-y-4 self-stretch">
+        <aside className="hidden w-full max-w-sm space-y-4 self-stretch lg:block">
           <div className="glass-panel p-5">
             <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Run stats
@@ -715,21 +865,20 @@ export default function GamePage() {
           </div>
 
           <div className="glass-panel p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">Available pieces</h2>
-                  <p className="text-sm text-slate-400">
-                    Select one, then tap a glowing board cell.
-                  </p>
-                </div>
-                <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Available pieces</h2>
+                <p className="text-sm text-slate-400">
+                  Select one, then tap a glowing board cell.
+                </p>
+              </div>
+              <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm">
                 {pieces.length}/3
               </div>
             </div>
 
             <div className="mt-4 grid gap-3">
               {pieces.map((piece) => {
-                const bounds = getShapeBounds(piece.shape);
                 const selected = piece.instanceId === selectedPieceId;
                 const playable = hasAnyValidMove(board, [piece]);
 
@@ -770,43 +919,7 @@ export default function GamePage() {
                       <span>{piece.shape.accentPattern}</span>
                     </div>
 
-                    <div
-                      className="mt-3 inline-grid gap-1.5 rounded-2xl border border-white/6 bg-[linear-gradient(180deg,rgba(15,23,42,0.82),rgba(2,6,23,0.92))] p-3"
-                      style={{
-                        gridTemplateColumns: `repeat(${bounds.width}, minmax(0, 1fr))`,
-                      }}
-                    >
-                      {Array.from({ length: bounds.height * bounds.width }).map(
-                        (_, cellIndex) => {
-                          const cellRow = Math.floor(cellIndex / bounds.width);
-                          const cellCol = cellIndex % bounds.width;
-                          const active = piece.shape.cells.some(
-                            (cell) => cell.row === cellRow && cell.col === cellCol
-                          );
-
-                          return (
-                            <div
-                              key={`${piece.instanceId}-${cellIndex}`}
-                              className={[
-                                "finance-cell relative h-9 w-9 rounded-lg border border-white/5",
-                                active
-                                  ? "bg-slate-900/45 shadow-[0_0_18px_rgba(255,255,255,0.05)]"
-                                  : "bg-slate-800/90",
-                              ].join(" ")}
-                            >
-                              {active
-                                ? renderFinanceCell(
-                                    piece.shape.color,
-                                    piece.shape.accentLabel,
-                                    piece.shape.accentPattern,
-                                    "top-[20%]"
-                                  )
-                                : null}
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
+                    {renderPieceMiniature(piece, piece.instanceId)}
                   </button>
                 );
               })}
@@ -874,8 +987,102 @@ export default function GamePage() {
         </aside>
       </div>
 
+      <div className="bottom-action-zone lg:hidden">
+        <div className="mx-auto w-full max-w-3xl space-y-3">
+          {error ? (
+            <div className="animate-fade-up rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
+              {error}
+            </div>
+          ) : null}
+
+          <div className="mobile-tray-card px-3 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                  Pieces tray
+                </div>
+                <div className="mt-1 text-sm text-slate-300">
+                  Tap to select, then tap or slide on the board to place.
+                </div>
+              </div>
+              <Link
+                to="/dashboard"
+                className="glow-button rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-100"
+              >
+                Dashboard
+              </Link>
+            </div>
+
+            <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+              {pieces.map((piece) => {
+                const selected = piece.instanceId === selectedPieceId;
+                const playable = hasAnyValidMove(board, [piece]);
+
+                return (
+                  <button
+                    key={piece.instanceId}
+                    type="button"
+                    onClick={() => handlePieceSelect(piece.instanceId)}
+                    className={[
+                      "finance-piece-card glow-button min-w-[10.5rem] rounded-2xl border p-3 text-left transition",
+                      selected
+                        ? "border-emerald-200/80 bg-gradient-to-br from-emerald-400/14 via-cyan-400/10 to-white/[0.04] shadow-[0_0_30px_rgba(52,211,153,0.12)] ring-2 ring-emerald-300/30"
+                        : "border-white/8 bg-white/[0.03]",
+                    ].join(" ")}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-white">
+                        {piece.shape.name}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-1 text-[0.68rem] ${
+                          playable
+                            ? "bg-emerald-500/20 text-emerald-100"
+                            : "bg-rose-500/20 text-rose-100"
+                        }`}
+                      >
+                        {playable ? "Valid" : "Blocked"}
+                      </span>
+                    </div>
+
+                    {renderPieceMiniature(piece, `${piece.instanceId}-mobile`)}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-3 flex flex-col gap-3 rounded-2xl border border-white/8 bg-white/[0.03] p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                    Reward reserve
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-white">
+                    {rewardAvailable ? `${reward?.type} x${reward?.value}` : "No active reward"}
+                  </div>
+                </div>
+                {rewardAvailable ? (
+                  <span className="rounded-full bg-amber-300/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100">
+                    Ready
+                  </span>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void handleBankAndRestart()}
+                disabled={loading || submitting}
+                className="glow-button min-h-14 w-full rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
+              >
+                Bank score
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {gameOver ? (
-        <div className="fixed inset-0 z-20 flex items-end justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+        <div className="safe-bottom-pad fixed inset-0 z-40 flex items-end justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
           <div className="glass-panel animate-rise-in w-full max-w-md p-5 sm:p-6">
             <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Dead End
@@ -897,7 +1104,7 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 space-y-3 safe-bottom-pad">
               {rewardAvailable ? (
                 <button
                   type="button"
