@@ -1,7 +1,15 @@
 import { useNavigate } from "react-router-dom";
 
+import { useAppStore } from "../store/appStore";
+
 export default function OnboardingPage() {
   const nav = useNavigate();
+  const { demoProduct, setHasSeenValueIntro } = useAppStore();
+
+  function handleStartDemo() {
+    setHasSeenValueIntro(true);
+    nav("/dashboard");
+  }
 
   return (
     <main className="min-h-screen overflow-x-clip px-4 py-6 text-slate-100 sm:py-8">
@@ -17,6 +25,13 @@ export default function OnboardingPage() {
                 Hackathon MVP Demo
               </div>
 
+              <div className="rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-4 text-sm leading-6 text-emerald-50">
+                Understand the product in under 8 seconds:
+                <span className="ml-2 font-semibold text-white">
+                  pay with card -&gt; unlock a reward -&gt; play better instantly.
+                </span>
+              </div>
+
               <div className="space-y-4">
                 <h1 className="max-w-3xl text-3xl font-bold text-white sm:text-5xl lg:text-6xl">
                   Turn everyday payments into game energy.
@@ -30,10 +45,10 @@ export default function OnboardingPage() {
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
-                  onClick={() => nav("/dashboard")}
+                  onClick={handleStartDemo}
                   className="glow-button min-h-14 rounded-2xl bg-emerald-400 px-6 py-4 text-base font-semibold text-slate-950 shadow-lg shadow-emerald-500/20"
                 >
-                  Start live demo
+                  Start 15-sec demo
                 </button>
                 <button
                   onClick={() => nav("/game")}
@@ -46,8 +61,8 @@ export default function OnboardingPage() {
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
                   "1. Pay for coffee",
-                  "2. Unlock reward",
-                  "3. Use it in game",
+                  "2. Unlock extra move",
+                  "3. Use it to extend your run",
                 ].map((step) => (
                   <div
                     key={step}
@@ -61,13 +76,55 @@ export default function OnboardingPage() {
 
             <div className="space-y-4">
               <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5 shadow-xl shadow-slate-950/30">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                    First quest
+                  </div>
+                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
+                    Dashboard starts here
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-3">
+                  {[
+                    {
+                      title: "Trigger one banking action",
+                      copy: "Tap one payment CTA to prove the reward engine is live.",
+                    },
+                    {
+                      title: "Show progress beyond the reward",
+                      copy: `The dashboard already shows ${demoProduct.paymentsToday}/3 challenge progress and $${demoProduct.savingsGoalCurrent}/$${demoProduct.savingsGoalTarget} saved.`,
+                    },
+                    {
+                      title: "Close with the playable proof",
+                      copy: "Open the puzzle and use the reward as a real gameplay advantage.",
+                    },
+                  ].map((item, index) => (
+                    <div
+                      key={item.title}
+                      className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
+                    >
+                      <div className="text-xs uppercase tracking-[0.2em] text-emerald-200">
+                        Quest {index + 1}
+                      </div>
+                      <div className="mt-2 text-lg font-semibold text-white">
+                        {item.title}
+                      </div>
+                      <p className="mt-1 text-sm leading-6 text-slate-400">
+                        {item.copy}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5 shadow-xl shadow-slate-950/30">
                 <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
                   Product loop
                 </div>
                 <div className="mt-5 space-y-3">
                   {[
                     {
-                      title: "Money becomes action",
+                      title: "Money becomes momentum",
                       copy: "A simple payment instantly triggers reward logic.",
                     },
                     {
@@ -99,7 +156,8 @@ export default function OnboardingPage() {
 
               <div className="rounded-3xl border border-amber-300/20 bg-amber-300/10 p-5 text-sm leading-6 text-amber-100">
                 This demo is optimized for a 30-60 second pitch: one payment,
-                one reward, one playable game loop, one clear retention story.
+                one reward, one savings touch, one social hook, and one clear
+                retention story.
               </div>
             </div>
           </div>

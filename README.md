@@ -7,13 +7,27 @@ Core idea:
 - reward -> gameplay advantage
 - gameplay -> progress and XP
 
-This makes the repo demo-friendly in under a minute: a user pays for coffee, unlocks an `extra_move`, uses it inside the game, and sees progress update across one connected experience.
+This makes the repo demo-friendly in under a minute: a user pays for coffee, unlocks an `extra_move`, advances a visible challenge, tops up a savings goal, sees a referral block, then uses the reward inside the game.
 
 ## Why this is valuable
 
 - Turns routine card activity into something visible and rewarding
 - Makes loyalty mechanics feel playful instead of hidden
 - Gives judges and teammates one clear retention story in 30-60 seconds
+
+## Why this is valuable for the bank and the client
+
+For the bank:
+- More card engagement through visible daily challenges
+- A savings habit layer that supports balances and retention
+- Referral surfaces that make the concept easier to share and grow
+- Basic analytics events that show where activation and replay happen
+
+For the client:
+- Immediate gratification after a real money action
+- Clear progress on both challenges and savings
+- A game reward that feels earned instead of random
+- A lighter, more motivating banking experience
 
 ## Screenshots
 
@@ -28,6 +42,7 @@ These are placeholders for demo assets you can capture locally.
 - `backend_block-finance_mvp` — FastAPI backend with SQLite for local demo data
 - `frontend_block_finance_mvp` — Vite + React frontend
 - `demo_script.md` — 30-60 second live demo talk track
+- `product_canvas.md` — pitch notes and product framing for hackathon defense
 
 ## Prerequisites
 
@@ -150,24 +165,45 @@ npm run dev -- --host 0.0.0.0 --port 5173
 ## Demo scenario
 
 1. Open `http://localhost:5173`
-2. Click `Start live demo`
-3. On the dashboard, show the user profile, XP, streak, and reward panel
+2. Click `Start 15-sec demo`
+3. On the dashboard, point out the `First quest` strip, the daily challenge card, the savings goal, and the referral block
 4. Click `Pay for coffee`
 5. The frontend sends `POST /transactions/demo` to the backend
 6. The backend returns an `extra_move` reward
-7. The dashboard reward card lights up immediately
-8. Click `Play game`
-9. Play until no valid moves remain
-10. Use the extra move reward if available
-11. Save score and restart the run
+7. The dashboard reward card lights up immediately and the daily challenge advances to `1/3`
+8. Click `Add $5` on the savings goal to show visible saving progress and the XP bonus
+9. Click `Invite a friend` to simulate referral growth and populate analytics
+10. Click `Play game`
+11. Play until no valid moves remain
+12. Use the extra move reward if available
+13. Save score and restart the run
 
 ## Product flow
 
-1. Dashboard frames the story: finance activity creates momentum
-2. Payment action triggers backend reward logic
-3. Reward is made visible before the user enters the game
-4. Game reflects the reward and lets the player consume it once
-5. End of run feeds back into XP and retention story
+1. Onboarding explains the loop in 5-8 seconds
+2. Dashboard frames the story: finance activity creates momentum
+3. Payment action triggers backend reward logic and challenge progress
+4. Savings and referral blocks show broader product scope around the same user
+5. Reward is made visible before the user enters the game
+6. Game reflects the reward and lets the player consume it once
+7. End of run feeds back into XP and retention story
+
+## Analytics events
+
+The frontend includes a lightweight analytics wrapper in `frontend_block_finance_mvp/src/services/analytics.ts`.
+
+Tracked demo events:
+- `app_open`
+- `payment_made`
+- `reward_received`
+- `game_started`
+- `game_finished`
+- `referral_clicked`
+
+Implementation notes:
+- Events are logged to `console`
+- Events are stored in browser `localStorage`
+- The dashboard shows the latest events in an `Analytics pulse` block for demo narration
 
 ## Common issues
 

@@ -7,6 +7,7 @@ import {
   startGameSession,
   useReward,
 } from "../services/api";
+import { trackEvent } from "../services/analytics";
 import {
   Board,
   Piece,
@@ -284,6 +285,9 @@ export default function GamePage() {
 
         const fresh = buildFreshGameState();
         setGameSessionId(session.session_id);
+        trackEvent("game_started", {
+          session_id: session.session_id,
+        });
         setBoard(fresh.board);
         setPieces(fresh.pieces);
         setSelectedPieceId(fresh.selectedPieceId);
@@ -365,6 +369,13 @@ export default function GamePage() {
       movesUsed,
       extraMovesUsed
     );
+    trackEvent("game_finished", {
+      session_id: gameSessionId,
+      score,
+      moves_used: movesUsed,
+      extra_moves_used: extraMovesUsed,
+      xp_gained: result.xp_gained,
+    });
     addXP(result.xp_gained);
     setGameSessionId(null);
     return result;
@@ -375,6 +386,10 @@ export default function GamePage() {
     const fresh = buildFreshGameState();
 
     setGameSessionId(session.session_id);
+    trackEvent("game_started", {
+      session_id: session.session_id,
+      restart: true,
+    });
     setBoard(fresh.board);
     setPieces(fresh.pieces);
     setSelectedPieceId(fresh.selectedPieceId);
