@@ -25,6 +25,34 @@ type HoveredCell = {
   col: number;
 } | null;
 
+function getPatternClass(pattern: Piece["shape"]["accentPattern"]) {
+  return `pattern-${pattern}`;
+}
+
+function renderFinanceCell(
+  color: string,
+  accentLabel: string,
+  accentPattern: Piece["shape"]["accentPattern"],
+  sizeClass: string
+) {
+  return (
+    <>
+      <span className={`finance-cell-core ${color}`} aria-hidden="true" />
+      <span
+        className={`finance-cell-overlay ${getPatternClass(accentPattern)}`}
+        aria-hidden="true"
+      />
+      <span
+        className={`finance-mark ${sizeClass} aspect-square w-[28%] min-w-[0.5rem]`}
+        aria-hidden="true"
+      />
+      <span className="finance-label" aria-hidden="true">
+        {accentLabel}
+      </span>
+    </>
+  );
+}
+
 function getPreviewState(
   board: Board,
   piece: Piece | null,
@@ -295,7 +323,7 @@ export default function GamePage() {
   );
 
   return (
-    <div className="min-h-screen text-slate-100">
+    <div className="min-h-screen overflow-x-clip text-slate-100">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 p-4 lg:flex-row lg:items-start">
         <section className="flex flex-1 flex-col items-center space-y-4">
           <div className="glass-panel animate-rise-in w-full max-w-3xl p-5 sm:p-6">
@@ -304,7 +332,9 @@ export default function GamePage() {
                 <div className="text-sm uppercase tracking-[0.24em] text-emerald-200">
                   Game screen
                 </div>
-                <h1 className="mt-2 text-3xl font-bold text-white">Block Puzzle</h1>
+                <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+                  Block Puzzle
+                </h1>
                 <p className="mt-2 text-sm text-slate-400">
                   Place all 3 pieces, clear rows and columns, and survive as long
                   as possible.
@@ -331,7 +361,7 @@ export default function GamePage() {
             ].join(" ")}
           >
             <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
-            <div className="mb-5 flex items-end justify-between gap-4">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <div className="text-xs uppercase tracking-[0.22em] text-slate-400">
                   Board
@@ -342,7 +372,7 @@ export default function GamePage() {
               </div>
               <div
                 className={[
-                  "rounded-2xl border border-emerald-300/15 bg-emerald-400/10 px-4 py-3 text-right",
+                  "w-full rounded-2xl border border-emerald-300/15 bg-emerald-400/10 px-4 py-3 text-left sm:w-auto sm:text-right",
                   scorePulse ? "animate-score-pop" : "",
                 ].join(" ")}
               >
@@ -353,7 +383,8 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="mx-auto grid w-fit grid-cols-8 gap-1 rounded-[28px] border border-white/8 bg-slate-950/70 p-3 shadow-2xl shadow-slate-950/50">
+            <div className="mx-auto w-full max-w-full overflow-hidden rounded-[28px] border border-white/8 bg-slate-950/40 p-2 sm:p-3">
+              <div className="game-board mx-auto grid w-fit rounded-[24px] bg-slate-950/70 p-2 shadow-2xl shadow-slate-950/50 sm:p-3">
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
                   const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
@@ -363,7 +394,7 @@ export default function GamePage() {
                     previewState === undefined
                       ? ""
                       : previewState
-                        ? `${selectedPiece?.shape.color ?? "bg-emerald-400"} ring-2 ring-emerald-100/70 opacity-80`
+                        ? `${selectedPiece?.shape.color ?? "bg-emerald-400"} ring-2 ring-emerald-100/70 opacity-90`
                         : "bg-rose-500/80 ring-2 ring-rose-200/60";
 
                   const occupiedClass = occupied
@@ -379,19 +410,30 @@ export default function GamePage() {
                       onMouseLeave={() => setHoveredCell(null)}
                       onClick={() => handleBoardClick(rowIndex, colIndex)}
                       className={[
-                        "h-10 w-10 rounded-xl border border-white/5 transition duration-150 sm:h-11 sm:w-11",
+                        "finance-cell relative rounded-xl border border-white/5 transition duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-200/70",
+                        "h-[var(--board-cell-size)] w-[var(--board-cell-size)] touch-manipulation",
                         occupiedClass,
                         previewClass,
                       ].join(" ")}
-                    />
+                    >
+                      {occupied
+                        ? renderFinanceCell(
+                            cell.color,
+                            cell.accentLabel,
+                            cell.accentPattern,
+                            "top-[18%]"
+                          )
+                        : null}
+                    </button>
                   );
                 })
               )}
             </div>
+            </div>
           </div>
         </section>
 
-        <aside className="w-full max-w-sm space-y-4">
+        <aside className="w-full max-w-sm space-y-4 self-stretch">
           <div className="glass-panel p-5">
             <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Run stats
@@ -425,7 +467,7 @@ export default function GamePage() {
           </div>
 
           <div className="glass-panel p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold">Available pieces</h2>
                 <p className="text-sm text-slate-400">
@@ -449,13 +491,13 @@ export default function GamePage() {
                     type="button"
                     onClick={() => handlePieceSelect(piece.instanceId)}
                     className={[
-                      "glow-button rounded-2xl border p-4 text-left transition",
+                      "finance-piece-card glow-button rounded-2xl border p-4 text-left transition",
                       selected
                         ? "border-emerald-300/70 bg-emerald-400/10 ring-2 ring-emerald-300/25"
                         : "border-white/8 bg-white/[0.03] hover:border-white/20",
                     ].join(" ")}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <span className="font-medium text-white">{piece.shape.name}</span>
                       <span
                         className={`rounded-full px-2 py-1 text-xs ${
@@ -468,11 +510,15 @@ export default function GamePage() {
                       </span>
                     </div>
 
+                    <div className="mt-2 flex items-center justify-between gap-3 text-[0.68rem] uppercase tracking-[0.18em] text-slate-400">
+                      <span>{piece.shape.accentLabel}</span>
+                      <span>{piece.shape.accentPattern}</span>
+                    </div>
+
                     <div
-                      className="mt-3 grid gap-1"
+                      className="mt-3 inline-grid gap-1.5 rounded-2xl border border-white/6 bg-slate-950/45 p-3"
                       style={{
                         gridTemplateColumns: `repeat(${bounds.width}, minmax(0, 1fr))`,
-                        width: `${bounds.width * 20}px`,
                       }}
                     >
                       {Array.from({ length: bounds.height * bounds.width }).map(
@@ -486,10 +532,20 @@ export default function GamePage() {
                           return (
                             <div
                               key={`${piece.instanceId}-${cellIndex}`}
-                              className={`h-4 w-4 rounded-sm ${
-                                active ? piece.shape.color : "bg-slate-700"
-                              }`}
-                            />
+                              className={[
+                                "finance-cell relative h-9 w-9 rounded-lg border border-white/5",
+                                active ? piece.shape.color : "bg-slate-800/90",
+                              ].join(" ")}
+                            >
+                              {active
+                                ? renderFinanceCell(
+                                    piece.shape.color,
+                                    piece.shape.accentLabel,
+                                    piece.shape.accentPattern,
+                                    "top-[20%]"
+                                  )
+                                : null}
+                            </div>
                           );
                         }
                       )}
@@ -531,12 +587,12 @@ export default function GamePage() {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={() => void handleRestart()}
               disabled={loading || submitting}
-              className="glow-button flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 font-semibold text-white disabled:opacity-50"
+              className="glow-button min-h-14 flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 font-semibold text-white disabled:opacity-50"
             >
               Restart run
             </button>
@@ -544,7 +600,7 @@ export default function GamePage() {
               type="button"
               onClick={() => void handleBankAndRestart()}
               disabled={loading || submitting}
-              className="glow-button flex-1 rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
+              className="glow-button min-h-14 flex-1 rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
             >
               Bank score
             </button>
@@ -559,12 +615,14 @@ export default function GamePage() {
       </div>
 
       {gameOver ? (
-        <div className="fixed inset-0 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
-          <div className="glass-panel animate-rise-in w-full max-w-md p-6">
+        <div className="fixed inset-0 z-20 flex items-end justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="glass-panel animate-rise-in w-full max-w-md p-5 sm:p-6">
             <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
               Game Over
             </div>
-            <h2 className="mt-2 text-4xl font-bold text-white">{score} points</h2>
+            <h2 className="mt-2 text-3xl font-bold text-white sm:text-4xl">
+              {score} points
+            </h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">
               None of the current 3 pieces can be placed on the board.
             </p>
@@ -579,7 +637,7 @@ export default function GamePage() {
                   type="button"
                   onClick={() => void handleUseExtraMove()}
                   disabled={submitting}
-                  className="glow-button w-full rounded-2xl bg-amber-300 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
+                  className="glow-button min-h-14 w-full rounded-2xl bg-amber-300 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
                 >
                   Use extra move reward
                 </button>
@@ -589,7 +647,7 @@ export default function GamePage() {
                 type="button"
                 onClick={() => void handleBankAndRestart()}
                 disabled={submitting}
-                className="glow-button w-full rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
+                className="glow-button min-h-14 w-full rounded-2xl bg-emerald-400 px-4 py-3 font-semibold text-slate-950 disabled:opacity-50"
               >
                 Save score and play again
               </button>

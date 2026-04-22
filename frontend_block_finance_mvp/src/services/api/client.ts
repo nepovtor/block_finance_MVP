@@ -1,4 +1,6 @@
-const API_BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_URL);
+const API_BASE_URL = normalizeBaseUrl(
+  import.meta.env.VITE_API_URL || inferDefaultApiBaseUrl()
+);
 
 export class ApiError extends Error {
   status: number;
@@ -18,6 +20,15 @@ function normalizeBaseUrl(url?: string): string {
   }
 
   return url.endsWith("/") ? url.slice(0, -1) : url;
+}
+
+function inferDefaultApiBaseUrl(): string {
+  if (typeof window === "undefined") {
+    return "http://localhost:8000";
+  }
+
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:8000`;
 }
 
 function buildUrl(path: string): string {

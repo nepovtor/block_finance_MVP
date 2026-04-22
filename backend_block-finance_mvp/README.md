@@ -31,10 +31,10 @@ cp .env.example .env
 4. Start the API:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The backend starts on `http://localhost:8000`.
+The backend starts on `http://localhost:8000` locally and is also reachable on your LAN IP, for example `http://192.168.1.50:8000`.
 
 ## Useful endpoints
 

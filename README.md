@@ -55,6 +55,8 @@ Default local URLs:
 - backend: `http://localhost:8000`
 - frontend: `http://localhost:5173`
 
+For phone testing on the same Wi-Fi, replace `localhost` with your computer's LAN IP in the frontend `.env` file.
+
 ## Run backend
 
 ```bash
@@ -62,8 +64,11 @@ cd backend_block-finance_mvp
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Backend LAN URL example:
+- `http://192.168.1.50:8000`
 
 ## Run frontend
 
@@ -72,6 +77,62 @@ cd frontend_block_finance_mvp
 npm install
 npm run dev
 ```
+
+The Vite config is set to listen on `0.0.0.0`, so it is reachable from other devices on your local network.
+
+Frontend LAN URL example:
+- `http://192.168.1.50:5173`
+
+## Phone testing on same Wi-Fi
+
+1. Find your computer's LAN IP:
+
+```bash
+ipconfig getifaddr en0
+```
+
+If that returns nothing on macOS, try:
+
+```bash
+ipconfig getifaddr en1
+```
+
+2. Put that IP into the frontend env file:
+
+```bash
+cd frontend_block_finance_mvp
+cp .env.example .env
+```
+
+Then edit `.env` so it looks like:
+
+```env
+VITE_API_URL=http://YOUR_LAN_IP:8000
+```
+
+3. Start the backend for LAN access:
+
+```bash
+cd backend_block-finance_mvp
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+4. Start the frontend for LAN/mobile access:
+
+```bash
+cd frontend_block_finance_mvp
+npm install
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+5. Open the app on your phone:
+- connect the phone to the same Wi-Fi network as your computer
+- open `http://YOUR_LAN_IP:5173`
+- verify the dashboard loads, `Pay for coffee` works, and the game opens
+- place pieces on the board and confirm there is no horizontal scrolling
 
 ## Demo scenario
 
@@ -98,9 +159,9 @@ npm run dev
 ## Common issues
 
 - `CORS` error:
-  Check that the frontend is running on `http://localhost:5173` and backend `.env` allows that origin.
+  Check that the frontend origin matches your LAN IP and that backend `.env` allows that origin or keeps the default LAN regex.
 - `Failed to fetch` in the frontend:
-  Confirm `frontend_block_finance_mvp/.env` contains `VITE_API_URL=http://localhost:8000`.
+  Confirm `frontend_block_finance_mvp/.env` contains `VITE_API_URL=http://YOUR_LAN_IP:8000`.
 - `Module not found` or missing React types:
   Run `npm install` inside `frontend_block_finance_mvp`.
 - Backend cannot start:

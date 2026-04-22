@@ -71,7 +71,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 text-slate-100">
+    <div className="min-h-screen overflow-x-clip p-4 text-slate-100">
       <div className="mx-auto max-w-6xl space-y-5">
         <div className="glass-panel animate-rise-in bg-grid relative overflow-hidden p-6 sm:p-8">
           <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-emerald-400/10 blur-3xl" />
@@ -81,7 +81,7 @@ export default function DashboardPage() {
               <div className="text-sm uppercase tracking-[0.28em] text-emerald-200">
                 Dashboard
               </div>
-              <h1 className="mt-3 text-4xl font-bold text-white sm:text-5xl">
+              <h1 className="mt-3 text-3xl font-bold text-white sm:text-5xl">
                 Hi, {user.name}
               </h1>
               <p className="mt-3 max-w-xl text-balance text-base leading-7 text-slate-300">
@@ -106,7 +106,7 @@ export default function DashboardPage() {
         <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-5">
             <div className="glass-panel p-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
                     Profile
@@ -148,7 +148,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-5 rounded-2xl border border-white/8 bg-slate-950/50 p-4">
-                <div className="flex items-center justify-between text-sm text-slate-300">
+                <div className="flex items-center justify-between gap-3 text-sm text-slate-300">
                   <span>XP progress</span>
                   <span>{xpProgress}%</span>
                 </div>
@@ -247,14 +247,14 @@ export default function DashboardPage() {
                 <button
                   onClick={handleCoffeePayment}
                   disabled={loading}
-                  className="glow-button rounded-2xl bg-emerald-400 px-4 py-4 font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+                  className="glow-button min-h-14 rounded-2xl bg-emerald-400 px-4 py-4 font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                 >
                   {loading ? "Processing payment..." : "Pay for coffee"}
                 </button>
 
                 <Link
                   to="/game"
-                  className="glow-button block rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-center font-semibold text-white"
+                  className="glow-button flex min-h-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-center font-semibold text-white"
                 >
                   Play game
                 </Link>

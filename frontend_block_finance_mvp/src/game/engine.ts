@@ -6,6 +6,8 @@ export const PIECES_PER_BATCH = 3;
 export type BoardCell = {
   occupied: true;
   color: string;
+  accentLabel: string;
+  accentPattern: ShapeDefinition["accentPattern"];
 };
 
 export type Board = (BoardCell | null)[][];
@@ -138,6 +140,8 @@ export function placeShape(
     nextBoard[cell.row][cell.col] = {
       occupied: true,
       color: shape.color,
+      accentLabel: shape.accentLabel,
+      accentPattern: shape.accentPattern,
     };
   });
 

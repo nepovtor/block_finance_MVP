@@ -16,6 +16,7 @@
   body {
     min-height: 100vh;
     background: transparent;
+    overflow-x: hidden;
   }
 
   h1,
@@ -28,6 +29,11 @@
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    min-height: 100vh;
+    overflow-x: clip;
   }
 }
 
@@ -42,6 +48,14 @@
 
   .stat-tile {
     @apply rounded-2xl border border-white/5 bg-white/[0.04] p-4;
+  }
+
+  .finance-cell {
+    @apply relative overflow-hidden;
+  }
+
+  .finance-piece-card {
+    @apply overflow-hidden;
   }
 }
 
@@ -79,6 +93,88 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  .game-board {
+    --board-cell-size: clamp(1.95rem, 9vw, 2.9rem);
+    --board-gap: 0.25rem;
+    grid-template-columns: repeat(8, minmax(0, var(--board-cell-size)));
+    gap: var(--board-gap);
+  }
+
+  .finance-cell-core {
+    @apply absolute inset-[2px] rounded-[calc(theme(borderRadius.lg)-2px)] bg-white/10;
+  }
+
+  .finance-cell-overlay {
+    @apply pointer-events-none absolute inset-[2px] rounded-[calc(theme(borderRadius.lg)-2px)] opacity-90;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.04) 42%, rgba(15, 23, 42, 0.16));
+  }
+
+  .finance-label {
+    @apply pointer-events-none absolute bottom-1 left-1 right-1 text-center font-semibold tracking-[0.16em] text-slate-950/70;
+    font-size: clamp(0.42rem, 1.6vw, 0.58rem);
+  }
+
+  .finance-mark {
+    @apply pointer-events-none absolute left-1 top-1 rounded-full border border-white/30 bg-white/20;
+  }
+
+  .pattern-coin::before,
+  .pattern-bill::before,
+  .pattern-vault::before,
+  .pattern-card::before,
+  .pattern-chart::before,
+  .pattern-bank::before {
+    content: "";
+    @apply absolute inset-[5px] rounded-[inherit] opacity-70;
+  }
+
+  .pattern-coin::before {
+    background:
+      radial-gradient(circle at 32% 34%, rgba(255, 255, 255, 0.75) 0 20%, transparent 23%),
+      radial-gradient(circle at 68% 64%, rgba(255, 255, 255, 0.55) 0 18%, transparent 21%),
+      radial-gradient(circle at center, rgba(15, 23, 42, 0.22) 0 42%, transparent 45%);
+  }
+
+  .pattern-bill::before {
+    background:
+      linear-gradient(180deg, transparent 20%, rgba(15, 23, 42, 0.22) 20% 26%, transparent 26% 58%, rgba(15, 23, 42, 0.22) 58% 64%, transparent 64%),
+      radial-gradient(circle at center, rgba(255, 255, 255, 0.5) 0 22%, transparent 26%);
+  }
+
+  .pattern-vault::before {
+    background:
+      radial-gradient(circle at center, transparent 0 34%, rgba(15, 23, 42, 0.32) 35% 42%, transparent 43%),
+      linear-gradient(90deg, transparent 47%, rgba(15, 23, 42, 0.28) 47% 53%, transparent 53%),
+      linear-gradient(180deg, transparent 47%, rgba(15, 23, 42, 0.28) 47% 53%, transparent 53%);
+  }
+
+  .pattern-card::before {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0 25%, transparent 25%),
+      linear-gradient(180deg, transparent 54%, rgba(15, 23, 42, 0.26) 54% 64%, transparent 64%),
+      linear-gradient(90deg, transparent 14%, rgba(255, 255, 255, 0.45) 14% 24%, transparent 24%);
+  }
+
+  .pattern-chart::before {
+    background:
+      linear-gradient(135deg, transparent 0 30%, rgba(15, 23, 42, 0.32) 30% 36%, transparent 36% 50%, rgba(15, 23, 42, 0.32) 50% 56%, transparent 56%),
+      linear-gradient(180deg, transparent 72%, rgba(255, 255, 255, 0.32) 72% 100%);
+  }
+
+  .pattern-bank::before {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0 18%, transparent 18%),
+      linear-gradient(90deg, transparent 14%, rgba(15, 23, 42, 0.24) 14% 20%, transparent 20% 42%, rgba(15, 23, 42, 0.24) 42% 48%, transparent 48% 70%, rgba(15, 23, 42, 0.24) 70% 76%, transparent 76%);
+  }
+}
+
+@media (min-width: 640px) {
+  .game-board {
+    --board-cell-size: clamp(2.55rem, 5.8vw, 3rem);
+    --board-gap: 0.35rem;
   }
 }
 

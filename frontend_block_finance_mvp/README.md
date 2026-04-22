@@ -29,5 +29,11 @@ The frontend starts on `http://localhost:5173`.
 Set `VITE_API_URL` to the FastAPI server, for example:
 
 ```env
-VITE_API_URL=http://localhost:8000
+VITE_API_URL=http://192.168.1.50:8000
+```
+
+For local-network phone testing, run:
+
+```bash
+npm run dev -- --host 0.0.0.0 --port 5173
 ```

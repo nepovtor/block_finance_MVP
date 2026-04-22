@@ -4,24 +4,24 @@ export default function OnboardingPage() {
   const nav = useNavigate();
 
   return (
-    <main className="min-h-screen overflow-hidden px-4 py-8 text-slate-100">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center">
+    <main className="min-h-screen overflow-x-clip px-4 py-6 text-slate-100 sm:py-8">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center sm:min-h-[calc(100vh-4rem)]">
         <section className="glass-panel bg-grid animate-rise-in relative w-full overflow-hidden p-6 sm:p-10">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
           <div className="absolute -right-24 top-10 h-48 w-48 rounded-full bg-emerald-400/15 blur-3xl" />
           <div className="absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-amber-300/10 blur-3xl" />
 
-          <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-6">
               <div className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
                 Hackathon MVP Demo
               </div>
 
               <div className="space-y-4">
-                <h1 className="max-w-3xl text-4xl font-bold text-white sm:text-6xl">
+                <h1 className="max-w-3xl text-3xl font-bold text-white sm:text-5xl lg:text-6xl">
                   Turn everyday payments into game energy.
                 </h1>
-                <p className="max-w-2xl text-balance text-lg leading-8 text-slate-300">
+                <p className="max-w-2xl text-balance text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
                   Block Finance makes banking feel rewarding for young users:
                   make a payment, unlock a gameplay boost, and grow progress in
                   one smooth loop.
@@ -31,13 +31,13 @@ export default function OnboardingPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   onClick={() => nav("/dashboard")}
-                  className="glow-button rounded-2xl bg-emerald-400 px-6 py-4 text-base font-semibold text-slate-950 shadow-lg shadow-emerald-500/20"
+                  className="glow-button min-h-14 rounded-2xl bg-emerald-400 px-6 py-4 text-base font-semibold text-slate-950 shadow-lg shadow-emerald-500/20"
                 >
                   Start live demo
                 </button>
                 <button
                   onClick={() => nav("/game")}
-                  className="glow-button rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-medium text-slate-100"
+                  className="glow-button min-h-14 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-medium text-slate-100"
                 >
                   Jump into game
                 </button>
