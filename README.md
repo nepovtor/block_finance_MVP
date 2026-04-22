@@ -79,3 +79,5 @@ npm run dev
   Run `npm install` inside `frontend_block_finance_mvp`.
 - Backend cannot start:
   Activate the virtual environment and install `requirements.txt`.
+- Backend uses an unexpected Postgres database:
+  Replace any old `backend_block-finance_mvp/.env` with values from `.env.example` for the simplest local SQLite demo.

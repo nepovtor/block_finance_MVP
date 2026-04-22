@@ -4,18 +4,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.reward import Reward
 
 
-async def consume_reward(
-    session: AsyncSession, user_id: int, reward_type: str
+async def get_active_reward(
+    session: AsyncSession, user_id: int, reward_type: str | None = None
 ) -> Reward | None:
-    reward = await session.scalar(
+    query = (
         select(Reward)
         .where(
             Reward.user_id == user_id,
-            Reward.type == reward_type,
             Reward.is_used == False,
         )
-        .order_by(Reward.created_at.asc())
+        .order_by(Reward.created_at.desc(), Reward.id.desc())
     )
+    if reward_type is not None:
+        query = query.where(Reward.type == reward_type)
+
+    return await session.scalar(query)
+
+
+async def consume_reward(
+    session: AsyncSession, user_id: int, reward_type: str
+) -> Reward | None:
+    reward = await get_active_reward(session, user_id, reward_type)
     if reward is None:
         return None
 

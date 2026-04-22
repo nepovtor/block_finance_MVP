@@ -19,6 +19,11 @@ export type UserProfile = {
   xp: number;
   xpToNext: number;
   streak: number;
+  activeReward: {
+    type: string;
+    value: number;
+    source?: string;
+  } | null;
 };
 
 export type GameSessionResponse = {

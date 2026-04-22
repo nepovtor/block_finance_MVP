@@ -17,6 +17,7 @@ export default function DashboardPage() {
         const profile = await getProfile();
         if (active) {
           setUser(profile);
+          setReward(profile.activeReward);
         }
       } catch (err) {
         if (active) {
@@ -34,7 +35,7 @@ export default function DashboardPage() {
     return () => {
       active = false;
     };
-  }, [setUser]);
+  }, [setReward, setUser]);
 
   const handleCoffeePayment = async () => {
     try {

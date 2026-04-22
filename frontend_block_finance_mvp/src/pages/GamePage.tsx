@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import {
   finishGameSession,
+  getProfile,
   startGameSession,
   useReward,
 } from "../services/api";
@@ -53,7 +54,7 @@ function buildFreshGameState() {
 }
 
 export default function GamePage() {
-  const { reward, addXP, gameSessionId, setGameSessionId, setReward } =
+  const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
     useAppStore();
 
   const [board, setBoard] = useState<Board>(() => createBoard());
@@ -83,6 +84,14 @@ export default function GamePage() {
 
     async function beginGameSession() {
       try {
+        const profile = await getProfile();
+        if (!active) {
+          return;
+        }
+
+        setUser(profile);
+        setReward(profile.activeReward);
+
         const session = await startGameSession();
         if (!active) {
           return;
@@ -114,7 +123,7 @@ export default function GamePage() {
     return () => {
       active = false;
     };
-  }, [setGameSessionId]);
+  }, [setGameSessionId, setReward, setUser]);
 
   useEffect(() => {
     if (!loading && !hasAnyValidMove(board, pieces)) {

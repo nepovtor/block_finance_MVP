@@ -13,4 +13,4 @@ async def get_user_profile(user_id: int, db: AsyncSession = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return serialize_user_profile(user)
+    return await serialize_user_profile(db, user)

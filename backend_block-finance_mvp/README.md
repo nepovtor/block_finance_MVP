@@ -26,6 +26,8 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
+`.env.example` is configured for local SQLite so the demo works without Postgres.
+
 4. Start the API:
 
 ```bash

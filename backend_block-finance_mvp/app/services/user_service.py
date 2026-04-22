@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
+from app.services.reward_service import get_active_reward
 
 DEMO_USER_ID = 1
 DEFAULT_XP_TO_NEXT = 300
@@ -29,7 +30,11 @@ async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
     return await session.scalar(select(User).where(User.id == user_id))
 
 
-def serialize_user_profile(user: User) -> dict[str, int | str]:
+async def serialize_user_profile(
+    session: AsyncSession, user: User
+) -> dict[str, int | str | dict[str, int | str] | None]:
+    active_reward = await get_active_reward(session, user.id)
+
     return {
         "id": user.id,
         "name": user.name,
@@ -37,4 +42,13 @@ def serialize_user_profile(user: User) -> dict[str, int | str]:
         "xp": user.xp,
         "xpToNext": DEFAULT_XP_TO_NEXT,
         "streak": user.streak,
+        "activeReward": (
+            {
+                "type": active_reward.type,
+                "value": active_reward.value,
+                "source": active_reward.source,
+            }
+            if active_reward is not None
+            else None
+        ),
     }
