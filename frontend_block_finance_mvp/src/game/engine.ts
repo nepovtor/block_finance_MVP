@@ -1,11 +1,14 @@
-
 import { SHAPES, ShapeCell, ShapeDefinition } from "./shapes";
 
 export const BOARD_SIZE = 8;
 export const PIECES_PER_BATCH = 3;
 
-export type BoardCell = 0 | 1;
-export type Board = BoardCell[][];
+export type BoardCell = {
+  occupied: true;
+  color: string;
+};
+
+export type Board = (BoardCell | null)[][];
 
 export type Piece = {
   instanceId: string;
@@ -26,7 +29,7 @@ function createPieceId(shapeId: string): string {
 
 export function createBoard(): Board {
   return Array.from({ length: BOARD_SIZE }, () =>
-    Array.from({ length: BOARD_SIZE }, () => 0 as BoardCell)
+    Array.from({ length: BOARD_SIZE }, () => null)
   );
 }
 
@@ -63,7 +66,7 @@ export function canPlaceShape(
       return false;
     }
 
-    return row[cell.col] === 0;
+    return row[cell.col] === null;
   });
 }
 
@@ -72,29 +75,31 @@ export function clearCompletedLines(board: Board) {
   const clearedCols: number[] = [];
 
   for (let rowIndex = 0; rowIndex < BOARD_SIZE; rowIndex += 1) {
-    if (board[rowIndex].every((cell) => cell === 1)) {
+    if (board[rowIndex].every((cell) => cell !== null)) {
       clearedRows.push(rowIndex);
     }
   }
 
   for (let colIndex = 0; colIndex < BOARD_SIZE; colIndex += 1) {
-    const fullColumn = board.every((row) => row[colIndex] === 1);
+    const fullColumn = board.every((row) => row[colIndex] !== null);
     if (fullColumn) {
       clearedCols.push(colIndex);
     }
   }
 
-  const nextBoard = board.map((row) => [...row]) as Board;
+  const nextBoard = board.map((row) =>
+    row.map((cell) => (cell ? { ...cell } : null))
+  ) as Board;
 
   clearedRows.forEach((rowIndex) => {
     for (let colIndex = 0; colIndex < BOARD_SIZE; colIndex += 1) {
-      nextBoard[rowIndex][colIndex] = 0;
+      nextBoard[rowIndex][colIndex] = null;
     }
   });
 
   clearedCols.forEach((colIndex) => {
     for (let rowIndex = 0; rowIndex < BOARD_SIZE; rowIndex += 1) {
-      nextBoard[rowIndex][colIndex] = 0;
+      nextBoard[rowIndex][colIndex] = null;
     }
   });
 
@@ -125,10 +130,15 @@ export function placeShape(
   anchorCol: number
 ): PlacementResult {
   const placedCells = getPlacementCells(shape, anchorRow, anchorCol);
-  const nextBoard = board.map((row) => [...row]) as Board;
+  const nextBoard = board.map((row) =>
+    row.map((cell) => (cell ? { ...cell } : null))
+  ) as Board;
 
   placedCells.forEach((cell) => {
-    nextBoard[cell.row][cell.col] = 1;
+    nextBoard[cell.row][cell.col] = {
+      occupied: true,
+      color: shape.color,
+    };
   });
 
   const cleared = clearCompletedLines(nextBoard);

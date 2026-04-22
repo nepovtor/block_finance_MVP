@@ -245,6 +245,11 @@ export default function GamePage() {
     }
   }
 
+  function handlePieceSelect(pieceId: string) {
+    setSelectedPieceId(pieceId);
+    setError("");
+  }
+
   function handleBoardClick(row: number, col: number) {
     if (!selectedPiece) {
       setError("Select a piece first");
@@ -351,32 +356,31 @@ export default function GamePage() {
             <div className="mx-auto grid w-fit grid-cols-8 gap-1 rounded-[28px] border border-white/8 bg-slate-950/70 p-3 shadow-2xl shadow-slate-950/50">
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
-                  const previewState = previewCellMap.get(
-                    `${rowIndex}-${colIndex}`
-                  );
-                  const occupied = cell === 1;
+                  const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
+                  const occupied = cell !== null;
+
                   const previewClass =
                     previewState === undefined
                       ? ""
                       : previewState
-                        ? "bg-emerald-400/80 ring-2 ring-emerald-100/70"
+                        ? `${selectedPiece?.shape.color ?? "bg-emerald-400"} ring-2 ring-emerald-100/70 opacity-80`
                         : "bg-rose-500/80 ring-2 ring-rose-200/60";
+
+                  const occupiedClass = occupied
+                    ? `${cell.color} shadow-inner shadow-white/20`
+                    : "bg-slate-800/90 hover:bg-slate-700";
 
                   return (
                     <button
                       key={`${rowIndex}-${colIndex}`}
                       type="button"
                       disabled={loading || submitting}
-                      onMouseEnter={() =>
-                        setHoveredCell({ row: rowIndex, col: colIndex })
-                      }
+                      onMouseEnter={() => setHoveredCell({ row: rowIndex, col: colIndex })}
                       onMouseLeave={() => setHoveredCell(null)}
                       onClick={() => handleBoardClick(rowIndex, colIndex)}
                       className={[
                         "h-10 w-10 rounded-xl border border-white/5 transition duration-150 sm:h-11 sm:w-11",
-                        occupied
-                          ? "bg-gradient-to-br from-slate-100 to-slate-300 shadow-inner shadow-white/50"
-                          : "bg-slate-800/90 hover:bg-slate-700",
+                        occupiedClass,
                         previewClass,
                       ].join(" ")}
                     />
@@ -443,7 +447,7 @@ export default function GamePage() {
                   <button
                     key={piece.instanceId}
                     type="button"
-                    onClick={() => setSelectedPieceId(piece.instanceId)}
+                    onClick={() => handlePieceSelect(piece.instanceId)}
                     className={[
                       "glow-button rounded-2xl border p-4 text-left transition",
                       selected
@@ -476,8 +480,7 @@ export default function GamePage() {
                           const cellRow = Math.floor(cellIndex / bounds.width);
                           const cellCol = cellIndex % bounds.width;
                           const active = piece.shape.cells.some(
-                            (cell) =>
-                              cell.row === cellRow && cell.col === cellCol
+                            (cell) => cell.row === cellRow && cell.col === cellCol
                           );
 
                           return (
