@@ -3,6 +3,12 @@ import { Link } from "react-router-dom";
 
 import { getProfile, makeDemoPayment } from "../services/api";
 import { getRecentAnalyticsEvents, trackEvent } from "../services/analytics";
+import {
+  ChallengeIcon,
+  ReferralIcon,
+  RewardIcon,
+  SavingsIcon,
+} from "../components/AppIcons";
 import { useAppStore } from "../store/appStore";
 
 export default function DashboardPage() {
@@ -184,7 +190,10 @@ export default function DashboardPage() {
             <div className="mt-4 grid gap-3">
               <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-semibold text-white">Daily challenge</span>
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                    <ChallengeIcon className="h-4 w-4 text-emerald-200" />
+                    Daily challenge
+                  </span>
                   <span className="text-sm text-slate-300">
                     {challengeProgress}/{challengeTarget}
                   </span>
@@ -199,7 +208,10 @@ export default function DashboardPage() {
 
               <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-semibold text-white">Savings goal</span>
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                    <SavingsIcon className="h-4 w-4 text-emerald-200" />
+                    Savings goal
+                  </span>
                   <span className="text-sm text-slate-300">
                     ${demoProduct.savingsGoalCurrent}/${demoProduct.savingsGoalTarget}
                   </span>
@@ -214,7 +226,10 @@ export default function DashboardPage() {
 
               <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm font-semibold text-white">Reward status</span>
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+                    <RewardIcon className="h-4 w-4 text-amber-200" />
+                    Reward status
+                  </span>
                   <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs uppercase tracking-[0.16em] text-amber-100">
                     {hasReward ? "Ready" : "Locked"}
                   </span>
@@ -557,7 +572,8 @@ export default function DashboardPage() {
                   <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
                     Invite a friend
                   </div>
-                  <div className="mt-2 text-xl font-semibold text-white">
+                  <div className="mt-2 inline-flex items-center gap-2 text-xl font-semibold text-white">
+                    <ReferralIcon className="h-5 w-5 text-emerald-200" />
                     Referral progress
                   </div>
                 </div>
