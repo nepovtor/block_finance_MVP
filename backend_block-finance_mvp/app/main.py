@@ -6,8 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.transactions import router as transaction_router
 from app.api.game import router as game_router
+from app.api.users import router as user_router
 from app.db.base import Base
-from app.db.session import engine
+from app.db.session import SessionLocal, engine
+from app.services.user_service import ensure_demo_user
 
 import app.models.user
 import app.models.transaction
@@ -33,6 +35,10 @@ def get_allowed_origins() -> list[str]:
 async def lifespan(_: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    async with SessionLocal() as session:
+        await ensure_demo_user(session)
+
     yield
 
 
@@ -66,6 +72,7 @@ def create_app() -> FastAPI:
 
     app.include_router(transaction_router)
     app.include_router(game_router)
+    app.include_router(user_router)
 
     return app
 

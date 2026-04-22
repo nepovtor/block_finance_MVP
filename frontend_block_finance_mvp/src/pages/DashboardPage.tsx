@@ -1,11 +1,40 @@
-import { useState } from "react";
-import { makeDemoPayment } from "../services/api";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getProfile, makeDemoPayment } from "../services/api";
 import { useAppStore } from "../store/appStore";
 
 export default function DashboardPage() {
-  const { user, reward, setReward } = useAppStore();
+  const { user, reward, setReward, setUser } = useAppStore();
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadProfile() {
+      try {
+        const profile = await getProfile();
+        if (active) {
+          setUser(profile);
+        }
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Failed to load profile");
+        }
+      } finally {
+        if (active) {
+          setProfileLoading(false);
+        }
+      }
+    }
+
+    void loadProfile();
+
+    return () => {
+      active = false;
+    };
+  }, [setUser]);
 
   const handleCoffeePayment = async () => {
     try {
@@ -31,6 +60,7 @@ export default function DashboardPage() {
       <h1 className="text-xl font-semibold">Hi, {user.name}</h1>
 
       <div className="rounded-2xl bg-slate-800 p-4">
+        <div>Status: {profileLoading ? "Syncing profile..." : "Connected"}</div>
         <div>Level: {user.level}</div>
         <div>XP: {user.xp}/{user.xpToNext}</div>
         <div>Streak: {user.streak} days</div>
@@ -47,6 +77,13 @@ export default function DashboardPage() {
       >
         {loading ? "Processing..." : "Pay for coffee"}
       </button>
+
+      <Link
+        to="/game"
+        className="block rounded-2xl border border-slate-600 px-4 py-3 text-center font-medium"
+      >
+        Go to game
+      </Link>
 
       {error ? <div className="text-red-400">{error}</div> : null}
     </div>
