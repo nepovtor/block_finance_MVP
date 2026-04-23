@@ -137,6 +137,9 @@ function getShapeGridClass(width: number) {
   }
 }
 
+const DRAG_GHOST_CELL_SIZE = 28;
+const DRAG_GHOST_GAP = 4;
+
 export default function GamePage() {
   const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
     useAppStore();
@@ -242,11 +245,16 @@ export default function GamePage() {
   useEffect(() => {
     if (!dragState || !dragGhostRef.current) return;
 
-    dragGhostRef.current.style.setProperty("--drag-x", `${dragState.clientX}px`);
-    dragGhostRef.current.style.setProperty(
-      "--drag-y",
-      `${dragState.clientY - 44}px`
-    );
+    dragGhostRef.current.style.left = `${
+      dragState.clientX -
+      (dragState.anchorCol * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_GAP) +
+        DRAG_GHOST_CELL_SIZE / 2)
+    }px`;
+    dragGhostRef.current.style.top = `${
+      dragState.clientY -
+      (dragState.anchorRow * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_GAP) +
+        DRAG_GHOST_CELL_SIZE / 2)
+    }px`;
   }, [dragState]);
 
   async function bankCurrentRun() {
@@ -516,12 +524,7 @@ export default function GamePage() {
               invalidMovePulse ? "animate-pulse" : "",
             ].join(" ")}
           >
-            <div
-              className="grid gap-1.5"
-              style={{
-                gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`,
-              }}
-            >
+            <div className="game-board">
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
                   const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
@@ -665,7 +668,7 @@ export default function GamePage() {
         {dragState && draggedPiece && draggedBounds ? (
           <div
             ref={dragGhostRef}
-            className="drag-ghost pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 opacity-85"
+            className="pointer-events-none fixed z-50 opacity-85"
           >
             <div
               className={[
