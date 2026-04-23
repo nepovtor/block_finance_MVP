@@ -1,6 +1,10 @@
 import type { PointerEvent } from "react";
 import { getShapeBounds, type Piece } from "../../game/engine";
 import { type Language, t } from "../../i18n/translations";
+import {
+  createPieceCellLookup,
+  getPieceCellStyle,
+} from "./pieceContour";
 
 function getShapeGridClass(width: number) {
   switch (width) {
@@ -61,6 +65,7 @@ export function PieceTray({
             <div className="grid grid-cols-3 gap-3">
               {pieces.map((piece) => {
                 const bounds = getShapeBounds(piece.shape);
+                const cellLookup = createPieceCellLookup(piece.shape.cells);
                 const selected = piece.instanceId === selectedPieceId;
 
                 return (
@@ -93,6 +98,9 @@ export function PieceTray({
                           const active = piece.shape.cells.some(
                             (cell) => cell.row === cellRow && cell.col === cellCol
                           );
+                          const cellStyle = active
+                            ? getPieceCellStyle(cellLookup, cellRow, cellCol, 8)
+                            : undefined;
 
                           return (
                             <div
@@ -100,8 +108,9 @@ export function PieceTray({
                               data-piece-cell={active ? true : undefined}
                               data-piece-row={active ? cellRow : undefined}
                               data-piece-col={active ? cellCol : undefined}
+                              style={cellStyle}
                               className={[
-                                "h-5 w-5 rounded-[8px] sm:h-6 sm:w-6",
+                                "h-5 w-5 sm:h-6 sm:w-6",
                                 active
                                   ? `piece-cell-3d piece-cell-tray ${piece.shape.color} ${
                                       selected ? "brightness-110" : ""

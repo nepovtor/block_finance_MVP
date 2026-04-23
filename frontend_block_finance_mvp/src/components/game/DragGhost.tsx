@@ -5,6 +5,10 @@ import {
   DRAG_GHOST_CELL_RADIUS,
   DRAG_GHOST_CELL_SIZE,
 } from "../../hooks/useGameDrag";
+import {
+  createPieceCellLookup,
+  getPieceCellStyle,
+} from "./pieceContour";
 
 function getShapeGridClass(width: number) {
   switch (width) {
@@ -34,6 +38,8 @@ export function DragGhost({
   height,
   dragGhostRef,
 }: DragGhostProps) {
+  const cellLookup = createPieceCellLookup(piece.shape.cells);
+
   return (
     <div ref={dragGhostRef} className="pointer-events-none fixed z-50 opacity-85">
       <div
@@ -46,6 +52,21 @@ export function DragGhost({
           const active = piece.shape.cells.some(
             (cell) => cell.row === cellRow && cell.col === cellCol
           );
+          const cellStyle = active
+            ? {
+                ...getPieceCellStyle(
+                  cellLookup,
+                  cellRow,
+                  cellCol,
+                  DRAG_GHOST_CELL_RADIUS
+                ),
+                width: `${DRAG_GHOST_CELL_SIZE}px`,
+                height: `${DRAG_GHOST_CELL_SIZE}px`,
+              }
+            : {
+                width: `${DRAG_GHOST_CELL_SIZE}px`,
+                height: `${DRAG_GHOST_CELL_SIZE}px`,
+              };
 
           return (
             <div
@@ -55,11 +76,7 @@ export function DragGhost({
                   ? `piece-cell-3d piece-cell-ghost ${piece.shape.color}`
                   : "opacity-0",
               ].join(" ")}
-              style={{
-                width: `${DRAG_GHOST_CELL_SIZE}px`,
-                height: `${DRAG_GHOST_CELL_SIZE}px`,
-                borderRadius: `${DRAG_GHOST_CELL_RADIUS}px`,
-              }}
+              style={cellStyle}
             />
           );
         })}

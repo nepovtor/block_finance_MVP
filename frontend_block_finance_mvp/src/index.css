@@ -237,13 +237,13 @@
   .piece-cell-3d {
     @apply relative overflow-hidden;
     background-image:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0.08) 26%, rgba(255, 255, 255, 0) 56%),
-      radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.2), transparent 48%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.07) 24%, rgba(255, 255, 255, 0) 54%),
+      radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.15), transparent 48%),
       linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(15, 23, 42, 0.14));
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.34),
-      inset 0 -2px 6px rgba(15, 23, 42, 0.18),
-      0 5px 12px rgba(2, 6, 23, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -2px 5px rgba(15, 23, 42, 0.16),
+      0 5px 11px rgba(2, 6, 23, 0.24),
       0 1px 2px rgba(255, 255, 255, 0.08);
     transform: translateZ(0);
   }
@@ -257,31 +257,36 @@
       rgba(255, 255, 255, 0.1) 58%,
       rgba(255, 255, 255, 0)
     );
-    opacity: 0.9;
+    opacity: var(--piece-gloss-opacity, 0.82);
     filter: blur(1px);
   }
 
   .piece-cell-3d::after {
     content: "";
     @apply pointer-events-none absolute inset-[1px] rounded-[inherit];
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-style: solid;
+    border-width: 1px;
+    border-top-color: rgb(255 255 255 / var(--piece-edge-top-alpha, 0.08));
+    border-right-color: rgb(255 255 255 / var(--piece-edge-right-alpha, 0.08));
+    border-bottom-color: rgb(255 255 255 / var(--piece-edge-bottom-alpha, 0.08));
+    border-left-color: rgb(255 255 255 / var(--piece-edge-left-alpha, 0.08));
     opacity: 0.75;
   }
 
   .piece-cell-tray {
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.38),
-      inset 0 -2px 7px rgba(15, 23, 42, 0.2),
-      0 6px 14px rgba(2, 6, 23, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -2px 6px rgba(15, 23, 42, 0.18),
+      0 6px 13px rgba(2, 6, 23, 0.28),
       0 0 0 1px rgba(255, 255, 255, 0.04);
   }
 
   .piece-cell-ghost {
     opacity: 0.94;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.34),
-      inset 0 -2px 6px rgba(15, 23, 42, 0.2),
-      0 8px 18px rgba(2, 6, 23, 0.34);
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -2px 5px rgba(15, 23, 42, 0.18),
+      0 8px 17px rgba(2, 6, 23, 0.32);
     filter: saturate(1.04) brightness(1.02);
   }
 
