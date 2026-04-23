@@ -1,6 +1,6 @@
 import { SHAPES, ShapeCell, ShapeDefinition } from "./shapes";
 
-export const BOARD_SIZE = 8;
+export const BOARD_SIZE = 7;
 export const PIECES_PER_BATCH = 3;
 
 export type BoardCell = {

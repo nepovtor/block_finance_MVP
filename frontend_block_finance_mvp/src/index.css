@@ -225,7 +225,7 @@
   .game-board {
     --board-cell-size: clamp(1.95rem, 9vw, 2.9rem);
     --board-gap: 0.25rem;
-    grid-template-columns: repeat(8, minmax(0, var(--board-cell-size)));
+    grid-template-columns: repeat(7, minmax(0, var(--board-cell-size)));
     gap: var(--board-gap);
   }
 

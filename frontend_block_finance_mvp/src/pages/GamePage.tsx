@@ -7,6 +7,7 @@ import {
   useReward,
 } from "../services/api";
 import {
+  BOARD_SIZE,
   Board,
   Piece,
   canPlaceShape,
@@ -457,7 +458,12 @@ export default function GamePage() {
               invalidMovePulse ? "animate-pulse" : "",
             ].join(" ")}
           >
-            <div className="grid grid-cols-8 gap-1.5">
+            <div
+              className="grid gap-1.5"
+              style={{
+                gridTemplateColumns: `repeat(${BOARD_SIZE}, minmax(0, 1fr))`,
+              }}
+            >
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
                   const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
