@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+export type Language = "en" | "ru";
+
 type Reward = {
   type: string;
   value: number;
@@ -25,6 +27,45 @@ type DemoProductState = {
 };
 
 const DEMO_PRODUCT_STORAGE_KEY = "block-finance-demo-product-state";
+const LANGUAGE_STORAGE_KEY = "block-finance-language";
+const LANGUAGE_SELECTED_STORAGE_KEY = "block-finance-language-selected";
+
+function loadLanguage(): Language {
+  if (typeof window === "undefined") {
+    return "en";
+  }
+
+  try {
+    const raw = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (raw === "en" || raw === "ru") {
+      return raw;
+    }
+    return "en";
+  } catch {
+    return "en";
+  }
+}
+
+function loadHasSelectedLanguage(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(LANGUAGE_SELECTED_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function persistLanguage(language: Language) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  window.localStorage.setItem(LANGUAGE_SELECTED_STORAGE_KEY, "true");
+}
 
 function loadDemoProductState(): DemoProductState {
   if (typeof window === "undefined") {
@@ -89,10 +130,13 @@ type AppState = {
   user: User;
   reward: Reward;
   gameSessionId: number | null;
+  language: Language;
+  hasSelectedLanguage: boolean;
   demoProduct: DemoProductState;
   setUser: (user: User) => void;
   setReward: (reward: Reward) => void;
   setGameSessionId: (sessionId: number | null) => void;
+  setLanguage: (language: Language) => void;
   addXP: (value: number) => void;
   recordPayment: () => number;
   addToSavingsGoal: (amount: number, bonusMessage?: string | null) => void;
@@ -101,6 +145,8 @@ type AppState = {
 };
 
 const initialDemoProductState = loadDemoProductState();
+const initialLanguage = loadLanguage();
+const initialHasSelectedLanguage = loadHasSelectedLanguage();
 
 export const useAppStore = create<AppState>((set) => ({
   user: {
@@ -112,10 +158,16 @@ export const useAppStore = create<AppState>((set) => ({
   },
   reward: null,
   gameSessionId: null,
+  language: initialLanguage,
+  hasSelectedLanguage: initialHasSelectedLanguage,
   demoProduct: initialDemoProductState,
   setUser: (user) => set({ user }),
   setReward: (reward) => set({ reward }),
   setGameSessionId: (gameSessionId) => set({ gameSessionId }),
+  setLanguage: (language) => {
+    persistLanguage(language);
+    set({ language, hasSelectedLanguage: true });
+  },
   addXP: (value) =>
     set((state) => ({
       user: {
