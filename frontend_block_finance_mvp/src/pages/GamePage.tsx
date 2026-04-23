@@ -30,6 +30,13 @@ type DragState = {
   moved: boolean;
 };
 
+type ClearedCellEffect = {
+  row: number;
+  col: number;
+  color: string;
+  variant: 0 | 1 | 2 | 3;
+};
+
 function getDragOrigin(
   hoveredCell: HoveredCell,
   dragState: DragState | null
@@ -138,7 +145,8 @@ function getShapeGridClass(width: number) {
 }
 
 const DRAG_GHOST_CELL_SIZE = 28;
-const DRAG_GHOST_GAP = 4;
+const DRAG_GHOST_GAP = 0;
+const CLEAR_ANIMATION_MS = 520;
 
 export default function GamePage() {
   const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
@@ -161,6 +169,7 @@ export default function GamePage() {
   const [scorePulse, setScorePulse] = useState(false);
   const [boardFlash, setBoardFlash] = useState(false);
   const [invalidMovePulse, setInvalidMovePulse] = useState(false);
+  const [clearedCellEffects, setClearedCellEffects] = useState<ClearedCellEffect[]>([]);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const suppressNextPieceClick = useRef(false);
   const dragGhostRef = useRef<HTMLDivElement | null>(null);
@@ -257,6 +266,15 @@ export default function GamePage() {
     }px`;
   }, [dragState]);
 
+  useEffect(() => {
+    if (clearedCellEffects.length === 0) return;
+    const timeoutId = window.setTimeout(
+      () => setClearedCellEffects([]),
+      CLEAR_ANIMATION_MS
+    );
+    return () => window.clearTimeout(timeoutId);
+  }, [clearedCellEffects]);
+
   async function bankCurrentRun() {
     if (gameSessionId === null) return;
     const result = await finishGameSession(
@@ -342,6 +360,54 @@ export default function GamePage() {
     setHoveredCell(null);
   }
 
+  function buildClearedCellEffects(move: ReturnType<typeof placeShape>, piece: Piece) {
+    if (move.clearedRows.length === 0 && move.clearedCols.length === 0) {
+      return [];
+    }
+
+    const placedCellMap = new Map(
+      move.placedCells.map((cell) => [
+        `${cell.row}-${cell.col}`,
+        piece.shape.color,
+      ])
+    );
+    const cells = new Map<string, ClearedCellEffect>();
+
+    move.clearedRows.forEach((rowIndex) => {
+      for (let colIndex = 0; colIndex < BOARD_SIZE; colIndex += 1) {
+        const key = `${rowIndex}-${colIndex}`;
+        const color = placedCellMap.get(key) ?? board[rowIndex][colIndex]?.color;
+
+        if (!color) continue;
+
+        cells.set(key, {
+          row: rowIndex,
+          col: colIndex,
+          color,
+          variant: ((rowIndex + colIndex) % 4) as 0 | 1 | 2 | 3,
+        });
+      }
+    });
+
+    move.clearedCols.forEach((colIndex) => {
+      for (let rowIndex = 0; rowIndex < BOARD_SIZE; rowIndex += 1) {
+        const key = `${rowIndex}-${colIndex}`;
+        const color = placedCellMap.get(key) ?? board[rowIndex][colIndex]?.color;
+
+        if (!color) continue;
+
+        cells.set(key, {
+          row: rowIndex,
+          col: colIndex,
+          color,
+          variant: ((rowIndex + colIndex + 1) % 4) as 0 | 1 | 2 | 3,
+        });
+      }
+    });
+
+    return Array.from(cells.values());
+  }
+
   function placePieceOnBoard(piece: Piece | null, row: number, col: number) {
     if (!piece) {
       setError("Select a piece first");
@@ -370,6 +436,7 @@ export default function GamePage() {
     setSelectedPieceId(nextPieces[0]?.instanceId ?? null);
     setHoveredCell(null);
     setScorePulse(true);
+    setClearedCellEffects(buildClearedCellEffects(move, piece));
 
     if (move.clearedRows.length > 0 || move.clearedCols.length > 0) {
       setBoardFlash(true);
@@ -462,12 +529,45 @@ export default function GamePage() {
   const previewCellMap = new Map(
     preview.cells.map((cell) => [`${cell.row}-${cell.col}`, preview.valid])
   );
+  const clearedCellMap = new Map(
+    clearedCellEffects.map((cell) => [`${cell.row}-${cell.col}`, cell])
+  );
   const draggedBounds = draggedPiece ? getShapeBounds(draggedPiece.shape) : null;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#1e3359_0%,_#0d1528_46%,_#050a14_100%)] text-white">
+      <style>{`
+        @keyframes line-clear-bloom {
+          0% { opacity: 1; transform: scale(1); filter: saturate(1); }
+          55% { opacity: 1; transform: scale(1.12); filter: saturate(1.35) brightness(1.15); }
+          100% { opacity: 0; transform: scale(0.62); filter: blur(10px) brightness(1.4); }
+        }
+
+        @keyframes line-clear-sweep {
+          0% { opacity: 1; transform: translateX(0) scaleX(1); }
+          60% { opacity: 1; transform: translateX(4px) scaleX(1.08); }
+          100% { opacity: 0; transform: translateX(16px) scaleX(0.25); filter: blur(8px); }
+        }
+
+        @keyframes line-clear-drop {
+          0% { opacity: 1; transform: translateY(0) scale(1); }
+          45% { opacity: 1; transform: translateY(2px) scale(1.06); }
+          100% { opacity: 0; transform: translateY(18px) scale(0.72); filter: blur(9px); }
+        }
+
+        @keyframes line-clear-shrink {
+          0% { opacity: 1; transform: rotate(0deg) scale(1); }
+          50% { opacity: 1; transform: rotate(6deg) scale(0.92); }
+          100% { opacity: 0; transform: rotate(-10deg) scale(0.18); filter: blur(7px); }
+        }
+
+        .line-clear-0 { animation: line-clear-bloom ${CLEAR_ANIMATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .line-clear-1 { animation: line-clear-sweep ${CLEAR_ANIMATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) forwards; transform-origin: left center; }
+        .line-clear-2 { animation: line-clear-drop ${CLEAR_ANIMATION_MS}ms ease-in forwards; }
+        .line-clear-3 { animation: line-clear-shrink ${CLEAR_ANIMATION_MS}ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+      `}</style>
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-3 pb-40 pt-3">
-        <header className="safe-top-header sticky top-0 z-20 -mx-3 mb-3 border-b border-white/10 bg-slate-950/70 px-3 pb-2 backdrop-blur">
+        <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-3 border-b border-white/10 bg-slate-950/70 px-3 pb-2 backdrop-blur">
           <div className="flex items-center justify-between gap-2">
             <Link
               to="/dashboard"
@@ -479,6 +579,7 @@ export default function GamePage() {
               <div
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                  scorePulse ? "animate-score-pop" : "",
                   scorePulse
                     ? "bg-cyan-300 text-slate-950"
                     : "bg-white/10 text-white/90",
@@ -489,6 +590,7 @@ export default function GamePage() {
               <div
                 className={[
                   "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                  rewardAvailable ? "animate-reward-pop" : "",
                   rewardAvailable
                     ? "bg-amber-300 text-slate-950"
                     : "bg-white/10 text-white/60",
@@ -519,15 +621,16 @@ export default function GamePage() {
 
           <section
             className={[
-              "relative mx-auto w-full max-w-[22rem] rounded-[2rem] border border-white/10 bg-slate-950/55 p-3 shadow-[0_22px_80px_rgba(0,0,0,0.48)] transition",
-              boardFlash ? "ring-4 ring-emerald-300/20" : "",
-              invalidMovePulse ? "animate-pulse" : "",
+              "animate-fade-up relative mx-auto w-full max-w-[22rem] rounded-[2rem] border border-white/10 bg-slate-950/55 p-3 shadow-[0_22px_80px_rgba(0,0,0,0.48)] transition",
+              boardFlash ? "animate-board-flash ring-4 ring-emerald-300/20" : "",
+              invalidMovePulse ? "animate-shake-soft" : "",
             ].join(" ")}
           >
-            <div className="game-board">
+            <div className="game-board grid">
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
                   const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
+                  const clearedEffect = clearedCellMap.get(`${rowIndex}-${colIndex}`);
                   const occupied = cell !== null;
                   const previewClass =
                     previewState === undefined
@@ -551,13 +654,23 @@ export default function GamePage() {
                       onPointerLeave={handleBoardLeave}
                       onClick={() => handleBoardClick(rowIndex, colIndex)}
                       className={[
-                        "aspect-square rounded-xl border transition",
+                        "relative aspect-square overflow-hidden rounded-xl border transition",
                         occupied
                           ? `${cell.color} border-white/10 shadow-[inset_0_1px_8px_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.24)]`
                           : "border-white/5 bg-[#14203b] hover:bg-[#1a2948]",
                         previewClass,
                       ].join(" ")}
-                    />
+                    >
+                      {clearedEffect ? (
+                        <span
+                          className={[
+                            "pointer-events-none absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_8px_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.24)]",
+                            `line-clear-${clearedEffect.variant}`,
+                            clearedEffect.color,
+                          ].join(" ")}
+                        />
+                      ) : null}
+                    </button>
                   );
                 })
               )}
@@ -567,7 +680,7 @@ export default function GamePage() {
 
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center">
           <div className="safe-bottom-tray pointer-events-auto w-full max-w-md">
-            <div className="border-t border-white/10 bg-slate-950/92 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+            <div className="animate-fade-up border-t border-white/10 bg-slate-950/92 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
               <div className="flex justify-center px-3 py-4">
                 <div className="grid grid-cols-3 gap-3">
                     {pieces.map((piece) => {
@@ -598,7 +711,7 @@ export default function GamePage() {
                           ].join(" ")}
                         >
                           <div
-                            className={["grid gap-1", getShapeGridClass(bounds.width)].join(
+                            className={["grid gap-0", getShapeGridClass(bounds.width)].join(
                               " "
                             )}
                           >
@@ -617,7 +730,7 @@ export default function GamePage() {
                                     data-piece-row={active ? cellRow : undefined}
                                     data-piece-col={active ? cellCol : undefined}
                                     className={[
-                                      "h-5 w-5 rounded-md sm:h-6 sm:w-6",
+                                      "h-5 w-5 rounded-[8px] sm:h-6 sm:w-6",
                                       active
                                         ? `${piece.shape.color} ${
                                             selected ? "brightness-110" : ""
@@ -672,7 +785,7 @@ export default function GamePage() {
           >
             <div
               className={[
-                "grid gap-1",
+                "grid gap-0",
                 getShapeGridClass(draggedBounds.width),
               ].join(" ")}
             >
