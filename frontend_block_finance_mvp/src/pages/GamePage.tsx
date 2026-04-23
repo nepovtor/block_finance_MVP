@@ -1,8 +1,17 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { DragGhost } from "../components/game/DragGhost";
+import { GameBoard } from "../components/game/GameBoard";
+import { GameHeader } from "../components/game/GameHeader";
+import { GameOverModal } from "../components/game/GameOverModal";
+import { PieceTray } from "../components/game/PieceTray";
 import {
-  finishGameSession,
+  CLEAR_ANIMATION_MS,
+  useClearedCellEffects,
+} from "../hooks/useClearedCellEffects";
+import { useGameDrag } from "../hooks/useGameDrag";
+import {
   getProfile,
+  finishGameSession,
   startGameSession,
   useReward,
 } from "../services/api";
@@ -20,41 +29,10 @@ import {
 } from "../game/engine";
 import { useAppStore } from "../store/appStore";
 
-type HoveredCell = { row: number; col: number } | null;
-type DragState = {
-  pieceId: string;
-  clientX: number;
-  clientY: number;
-  anchorRow: number;
-  anchorCol: number;
-  moved: boolean;
-};
-
-type ClearedCellEffect = {
-  row: number;
-  col: number;
-  color: string;
-  variant: 0 | 1 | 2 | 3;
-};
-
-function getDragOrigin(
-  hoveredCell: HoveredCell,
-  dragState: DragState | null
-): HoveredCell {
-  if (!hoveredCell || !dragState) {
-    return hoveredCell;
-  }
-
-  return {
-    row: hoveredCell.row - dragState.anchorRow,
-    col: hoveredCell.col - dragState.anchorCol,
-  };
-}
-
 function getPreviewState(
   board: Board,
   piece: Piece | null,
-  originCell: HoveredCell
+  originCell: { row: number; col: number } | null
 ) {
   if (!piece || !originCell) {
     return {
@@ -79,75 +57,6 @@ function buildFreshGameState() {
   };
 }
 
-function getBoardCellFromPoint(clientX: number, clientY: number): HoveredCell {
-  const element = document
-    .elementFromPoint(clientX, clientY)
-    ?.closest<HTMLElement>("[data-board-cell]");
-
-  if (!element) {
-    return null;
-  }
-
-  const row = Number(element.dataset.row);
-  const col = Number(element.dataset.col);
-
-  if (!Number.isInteger(row) || !Number.isInteger(col)) {
-    return null;
-  }
-
-  return { row, col };
-}
-
-function getDragAnchor(
-  event: PointerEvent<HTMLButtonElement>,
-  piece: Piece
-): { anchorRow: number; anchorCol: number } {
-  const activeCells = Array.from(
-    event.currentTarget.querySelectorAll<HTMLElement>("[data-piece-cell]")
-  );
-
-  const closestCell = activeCells.reduce<HTMLElement | null>((closest, cell) => {
-    if (!closest) return cell;
-
-    const cellRect = cell.getBoundingClientRect();
-    const closestRect = closest.getBoundingClientRect();
-    const cellDistance =
-      Math.abs(event.clientX - (cellRect.left + cellRect.width / 2)) +
-      Math.abs(event.clientY - (cellRect.top + cellRect.height / 2));
-    const closestDistance =
-      Math.abs(event.clientX - (closestRect.left + closestRect.width / 2)) +
-      Math.abs(event.clientY - (closestRect.top + closestRect.height / 2));
-
-    return cellDistance < closestDistance ? cell : closest;
-  }, null);
-
-  const fallbackCell = piece.shape.cells[0] ?? { row: 0, col: 0 };
-
-  return {
-    anchorRow: Number(closestCell?.dataset.pieceRow ?? fallbackCell.row),
-    anchorCol: Number(closestCell?.dataset.pieceCol ?? fallbackCell.col),
-  };
-}
-
-function getShapeGridClass(width: number) {
-  switch (width) {
-    case 1:
-      return "grid-cols-1";
-    case 2:
-      return "grid-cols-2";
-    case 3:
-      return "grid-cols-3";
-    case 4:
-      return "grid-cols-4";
-    default:
-      return "grid-cols-5";
-  }
-}
-
-const DRAG_GHOST_CELL_SIZE = 28;
-const DRAG_GHOST_GAP = 0;
-const CLEAR_ANIMATION_MS = 520;
-
 export default function GamePage() {
   const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
     useAppStore();
@@ -155,7 +64,6 @@ export default function GamePage() {
   const [board, setBoard] = useState<Board>(() => createBoard());
   const [pieces, setPieces] = useState<Piece[]>(() => createPieceBatch());
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
-  const [hoveredCell, setHoveredCell] = useState<HoveredCell>(null);
   const [score, setScore] = useState(0);
   const [movesUsed, setMovesUsed] = useState(0);
   const [extraMovesUsed, setExtraMovesUsed] = useState(0);
@@ -169,17 +77,38 @@ export default function GamePage() {
   const [scorePulse, setScorePulse] = useState(false);
   const [boardFlash, setBoardFlash] = useState(false);
   const [invalidMovePulse, setInvalidMovePulse] = useState(false);
-  const [clearedCellEffects, setClearedCellEffects] = useState<ClearedCellEffect[]>([]);
-  const [dragState, setDragState] = useState<DragState | null>(null);
-  const suppressNextPieceClick = useRef(false);
-  const dragGhostRef = useRef<HTMLDivElement | null>(null);
 
   const selectedPiece =
     pieces.find((piece) => piece.instanceId === selectedPieceId) ?? null;
+  const {
+    boardRef,
+    dragGhostRef,
+    dragState,
+    hoveredCell,
+    dragOriginCell,
+    handleBoardPreview,
+    handleBoardLeave,
+    handlePiecePointerDown,
+    handlePiecePointerMove,
+    handlePiecePointerUp,
+    handlePiecePointerCancel,
+    handlePieceClick,
+    clearHoveredCell,
+    resetDragState,
+  } = useGameDrag({
+    pieces,
+    selectedPiece,
+    setSelectedPieceId,
+    placePieceOnBoard,
+  });
+  const {
+    clearedCellEffects,
+    setClearedCellEffects,
+    buildClearedCellEffects,
+  } = useClearedCellEffects(board);
   const draggedPiece =
     pieces.find((piece) => piece.instanceId === dragState?.pieceId) ?? null;
 
-  const dragOriginCell = getDragOrigin(hoveredCell, dragState);
   const preview = useMemo(
     () => getPreviewState(board, draggedPiece ?? selectedPiece, dragOriginCell),
     [board, draggedPiece, dragOriginCell, selectedPiece]
@@ -251,30 +180,6 @@ export default function GamePage() {
     return () => window.clearTimeout(timeoutId);
   }, [invalidMovePulse]);
 
-  useEffect(() => {
-    if (!dragState || !dragGhostRef.current) return;
-
-    dragGhostRef.current.style.left = `${
-      dragState.clientX -
-      (dragState.anchorCol * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_GAP) +
-        DRAG_GHOST_CELL_SIZE / 2)
-    }px`;
-    dragGhostRef.current.style.top = `${
-      dragState.clientY -
-      (dragState.anchorRow * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_GAP) +
-        DRAG_GHOST_CELL_SIZE / 2)
-    }px`;
-  }, [dragState]);
-
-  useEffect(() => {
-    if (clearedCellEffects.length === 0) return;
-    const timeoutId = window.setTimeout(
-      () => setClearedCellEffects([]),
-      CLEAR_ANIMATION_MS
-    );
-    return () => window.clearTimeout(timeoutId);
-  }, [clearedCellEffects]);
-
   async function bankCurrentRun() {
     if (gameSessionId === null) return;
     const result = await finishGameSession(
@@ -295,7 +200,7 @@ export default function GamePage() {
     setBoard(fresh.board);
     setPieces(fresh.pieces);
     setSelectedPieceId(fresh.selectedPieceId);
-    setHoveredCell(null);
+    resetDragState();
     setScore(0);
     setMovesUsed(0);
     setExtraMovesUsed(0);
@@ -351,63 +256,6 @@ export default function GamePage() {
     }
   }
 
-  function handleBoardPreview(row: number, col: number) {
-    if (!selectedPiece) return;
-    setHoveredCell({ row, col });
-  }
-
-  function handleBoardLeave() {
-    setHoveredCell(null);
-  }
-
-  function buildClearedCellEffects(move: ReturnType<typeof placeShape>, piece: Piece) {
-    if (move.clearedRows.length === 0 && move.clearedCols.length === 0) {
-      return [];
-    }
-
-    const placedCellMap = new Map(
-      move.placedCells.map((cell) => [
-        `${cell.row}-${cell.col}`,
-        piece.shape.color,
-      ])
-    );
-    const cells = new Map<string, ClearedCellEffect>();
-
-    move.clearedRows.forEach((rowIndex) => {
-      for (let colIndex = 0; colIndex < BOARD_SIZE; colIndex += 1) {
-        const key = `${rowIndex}-${colIndex}`;
-        const color = placedCellMap.get(key) ?? board[rowIndex][colIndex]?.color;
-
-        if (!color) continue;
-
-        cells.set(key, {
-          row: rowIndex,
-          col: colIndex,
-          color,
-          variant: ((rowIndex + colIndex) % 4) as 0 | 1 | 2 | 3,
-        });
-      }
-    });
-
-    move.clearedCols.forEach((colIndex) => {
-      for (let rowIndex = 0; rowIndex < BOARD_SIZE; rowIndex += 1) {
-        const key = `${rowIndex}-${colIndex}`;
-        const color = placedCellMap.get(key) ?? board[rowIndex][colIndex]?.color;
-
-        if (!color) continue;
-
-        cells.set(key, {
-          row: rowIndex,
-          col: colIndex,
-          color,
-          variant: ((rowIndex + colIndex + 1) % 4) as 0 | 1 | 2 | 3,
-        });
-      }
-    });
-
-    return Array.from(cells.values());
-  }
-
   function placePieceOnBoard(piece: Piece | null, row: number, col: number) {
     if (!piece) {
       setError("Select a piece first");
@@ -434,7 +282,7 @@ export default function GamePage() {
     setMovesUsed((current) => current + 1);
     setPieces(nextPieces);
     setSelectedPieceId(nextPieces[0]?.instanceId ?? null);
-    setHoveredCell(null);
+    clearHoveredCell();
     setScorePulse(true);
     setClearedCellEffects(buildClearedCellEffects(move, piece));
 
@@ -452,78 +300,6 @@ export default function GamePage() {
 
   function handleBoardClick(row: number, col: number) {
     placePieceOnBoard(selectedPiece, row, col);
-  }
-
-  function handlePiecePointerDown(
-    event: PointerEvent<HTMLButtonElement>,
-    piece: Piece
-  ) {
-    const dragAnchor = getDragAnchor(event, piece);
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setSelectedPieceId(piece.instanceId);
-    setDragState({
-      pieceId: piece.instanceId,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      anchorRow: dragAnchor.anchorRow,
-      anchorCol: dragAnchor.anchorCol,
-      moved: false,
-    });
-    setHoveredCell(getBoardCellFromPoint(event.clientX, event.clientY));
-  }
-
-  function handlePiecePointerMove(event: PointerEvent<HTMLButtonElement>) {
-    setDragState((current) => {
-      if (!current) {
-        return current;
-      }
-
-      const moved =
-        current.moved ||
-        Math.abs(event.clientX - current.clientX) > 3 ||
-        Math.abs(event.clientY - current.clientY) > 3;
-
-      return {
-        ...current,
-        clientX: event.clientX,
-        clientY: event.clientY,
-        moved,
-      };
-    });
-
-    setHoveredCell(getBoardCellFromPoint(event.clientX, event.clientY));
-  }
-
-  function handlePiecePointerUp(event: PointerEvent<HTMLButtonElement>) {
-    const cell = getBoardCellFromPoint(event.clientX, event.clientY);
-
-    if (dragState?.moved) {
-      suppressNextPieceClick.current = true;
-    }
-
-    const originCell = getDragOrigin(cell, dragState);
-
-    if (originCell) {
-      const placed = placePieceOnBoard(
-        draggedPiece,
-        originCell.row,
-        originCell.col
-      );
-      suppressNextPieceClick.current = suppressNextPieceClick.current || placed;
-    }
-
-    setDragState(null);
-    setHoveredCell(null);
-  }
-
-  function handlePieceClick(piece: Piece) {
-    if (suppressNextPieceClick.current) {
-      suppressNextPieceClick.current = false;
-      return;
-    }
-
-    setSelectedPieceId(piece.instanceId);
   }
 
   const previewCellMap = new Map(
@@ -567,51 +343,13 @@ export default function GamePage() {
         .line-clear-3 { animation: line-clear-shrink ${CLEAR_ANIMATION_MS}ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
       `}</style>
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-3 pb-40 pt-3">
-        <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-3 border-b border-white/10 bg-slate-950/70 px-3 pb-2 backdrop-blur">
-          <div className="flex items-center justify-between gap-2">
-            <Link
-              to="/dashboard"
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/85"
-            >
-              ← Dashboard
-            </Link>
-            <div className="flex items-center gap-2">
-              <div
-                className={[
-                  "rounded-full px-3 py-1.5 text-xs font-semibold transition",
-                  scorePulse ? "animate-score-pop" : "",
-                  scorePulse
-                    ? "bg-cyan-300 text-slate-950"
-                    : "bg-white/10 text-white/90",
-                ].join(" ")}
-              >
-                Score {score}
-              </div>
-              <div
-                className={[
-                  "rounded-full px-3 py-1.5 text-xs font-semibold transition",
-                  rewardAvailable ? "animate-reward-pop" : "",
-                  rewardAvailable
-                    ? "bg-amber-300 text-slate-950"
-                    : "bg-white/10 text-white/60",
-                ].join(" ")}
-              >
-                {rewardAvailable ? `Reward ×${reward?.value}` : "No reward"}
-              </div>
-            </div>
-          </div>
-          <div className="mt-2 flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.26em] text-cyan-200/70">
-                Block Finance
-              </p>
-              <h1 className="text-lg font-bold leading-none">Game</h1>
-            </div>
-            <p className="max-w-[11rem] text-right text-[11px] leading-4 text-white/60">
-              {statusText.replace(/\n/g, " ")}
-            </p>
-          </div>
-        </header>
+        <GameHeader
+          score={score}
+          scorePulse={scorePulse}
+          rewardAvailable={rewardAvailable}
+          rewardValue={reward?.value}
+          statusText={statusText}
+        />
 
         <main className="flex flex-1 flex-col">
           <div className="mb-3 flex items-center justify-between px-1 text-[11px] uppercase tracking-[0.22em] text-white/45">
@@ -619,253 +357,55 @@ export default function GamePage() {
             <span>{loading ? "Starting" : `Session ${gameSessionId ?? "offline"}`}</span>
           </div>
 
-          <section
-            className={[
-              "animate-fade-up relative mx-auto w-full max-w-[22rem] rounded-[2rem] border border-white/10 bg-slate-950/55 p-3 shadow-[0_22px_80px_rgba(0,0,0,0.48)] transition",
-              boardFlash ? "animate-board-flash ring-4 ring-emerald-300/20" : "",
-              invalidMovePulse ? "animate-shake-soft" : "",
-            ].join(" ")}
-          >
-            <div className="game-board grid">
-              {board.map((row, rowIndex) =>
-                row.map((cell, colIndex) => {
-                  const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
-                  const clearedEffect = clearedCellMap.get(`${rowIndex}-${colIndex}`);
-                  const occupied = cell !== null;
-                  const previewClass =
-                    previewState === undefined
-                      ? ""
-                      : previewState
-                      ? "bg-emerald-400/70 ring-2 ring-emerald-200/80"
-                      : "bg-rose-500/70 ring-2 ring-rose-200/70";
-
-                  return (
-                    <button
-                      key={`${rowIndex}-${colIndex}`}
-                      type="button"
-                      aria-label={`Place selected shape at row ${
-                        rowIndex + 1
-                      }, column ${colIndex + 1}`}
-                      data-board-cell
-                      data-row={rowIndex}
-                      data-col={colIndex}
-                      onPointerEnter={() => handleBoardPreview(rowIndex, colIndex)}
-                      onPointerMove={() => handleBoardPreview(rowIndex, colIndex)}
-                      onPointerLeave={handleBoardLeave}
-                      onClick={() => handleBoardClick(rowIndex, colIndex)}
-                      className={[
-                        "relative aspect-square overflow-hidden rounded-xl border transition",
-                        occupied
-                          ? `${cell.color} border-white/10 shadow-[inset_0_1px_8px_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.24)]`
-                          : "border-white/5 bg-[#14203b] hover:bg-[#1a2948]",
-                        previewClass,
-                      ].join(" ")}
-                    >
-                      {clearedEffect ? (
-                        <span
-                          className={[
-                            "pointer-events-none absolute inset-0 rounded-[inherit] shadow-[inset_0_1px_8px_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.24)]",
-                            `line-clear-${clearedEffect.variant}`,
-                            clearedEffect.color,
-                          ].join(" ")}
-                        />
-                      ) : null}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </section>
+          <GameBoard
+            board={board}
+            boardRef={boardRef}
+            boardFlash={boardFlash}
+            invalidMovePulse={invalidMovePulse}
+            previewCellMap={previewCellMap}
+            clearedCellMap={clearedCellMap}
+            handleBoardPreview={handleBoardPreview}
+            handleBoardLeave={handleBoardLeave}
+            handleBoardClick={handleBoardClick}
+          />
         </main>
 
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center">
-          <div className="safe-bottom-tray pointer-events-auto w-full max-w-md">
-            <div className="animate-fade-up border-t border-white/10 bg-slate-950/92 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-              <div className="flex justify-center px-3 py-4">
-                <div className="grid grid-cols-3 gap-3">
-                    {pieces.map((piece) => {
-                      const bounds = getShapeBounds(piece.shape);
-                      const selected = piece.instanceId === selectedPieceId;
-
-                      return (
-                        <button
-                          key={piece.instanceId}
-                          type="button"
-                          aria-label={`Select and drag ${piece.shape.name} shape`}
-                          onClick={() => handlePieceClick(piece)}
-                          onPointerDown={(event) =>
-                            handlePiecePointerDown(event, piece)
-                          }
-                          onPointerMove={handlePiecePointerMove}
-                          onPointerUp={handlePiecePointerUp}
-                          onPointerCancel={() => {
-                            setDragState(null);
-                            setHoveredCell(null);
-                          }}
-                          className={[
-                            "touch-none select-none rounded-xl p-1.5 transition active:scale-95",
-                            selected ? "scale-105" : "",
-                            dragState?.pieceId === piece.instanceId
-                              ? "opacity-35"
-                              : "",
-                          ].join(" ")}
-                        >
-                          <div
-                            className={["grid gap-0", getShapeGridClass(bounds.width)].join(
-                              " "
-                            )}
-                          >
-                            {Array.from({ length: bounds.height * bounds.width }).map(
-                              (_, cellIndex) => {
-                                const cellRow = Math.floor(cellIndex / bounds.width);
-                                const cellCol = cellIndex % bounds.width;
-                                const active = piece.shape.cells.some(
-                                  (cell) => cell.row === cellRow && cell.col === cellCol
-                                );
-
-                                return (
-                                  <div
-                                    key={`${piece.instanceId}-${cellIndex}`}
-                                    data-piece-cell={active ? true : undefined}
-                                    data-piece-row={active ? cellRow : undefined}
-                                    data-piece-col={active ? cellCol : undefined}
-                                    className={[
-                                      "h-5 w-5 rounded-[8px] sm:h-6 sm:w-6",
-                                      active
-                                        ? `${piece.shape.color} ${
-                                            selected ? "brightness-110" : ""
-                                          } shadow-[inset_0_1px_5px_rgba(255,255,255,0.45),0_3px_8px_rgba(0,0,0,0.28)]`
-                                        : "opacity-0",
-                                    ].join(" ")}
-                                  />
-                                );
-                              }
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                </div>
-              </div>
-
-              <div className="border-t border-white/10 px-3 py-3">
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void handleRestart()}
-                    disabled={loading || submitting}
-                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    Restart
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleBankAndRestart()}
-                    disabled={loading || submitting}
-                    className="flex-1 rounded-2xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
-                  >
-                    {gameOver ? "Save + play again" : "Bank score"}
-                  </button>
-                </div>
-
-                {error ? (
-                  <p className="mt-2 rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
-                    {error}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </div>
+        <PieceTray
+          pieces={pieces}
+          selectedPieceId={selectedPieceId}
+          dragPieceId={dragState?.pieceId}
+          loading={loading}
+          submitting={submitting}
+          gameOver={gameOver}
+          error={error}
+          handlePieceClick={handlePieceClick}
+          handlePiecePointerDown={handlePiecePointerDown}
+          handlePiecePointerMove={handlePiecePointerMove}
+          handlePiecePointerUp={handlePiecePointerUp}
+          handlePiecePointerCancel={handlePiecePointerCancel}
+          handleRestart={() => void handleRestart()}
+          handleBankAndRestart={() => void handleBankAndRestart()}
+        />
 
         {dragState && draggedPiece && draggedBounds ? (
-          <div
-            ref={dragGhostRef}
-            className="pointer-events-none fixed z-50 opacity-85"
-          >
-            <div
-              className={[
-                "grid gap-0",
-                getShapeGridClass(draggedBounds.width),
-              ].join(" ")}
-            >
-              {Array.from({
-                length: draggedBounds.height * draggedBounds.width,
-              }).map((_, cellIndex) => {
-                const cellRow = Math.floor(cellIndex / draggedBounds.width);
-                const cellCol = cellIndex % draggedBounds.width;
-                const active = draggedPiece.shape.cells.some(
-                  (cell) => cell.row === cellRow && cell.col === cellCol
-                );
-
-                return (
-                  <div
-                    key={`${draggedPiece.instanceId}-drag-${cellIndex}`}
-                    className={[
-                      "h-7 w-7 rounded-lg",
-                      active
-                        ? `${draggedPiece.shape.color} shadow-[inset_0_1px_5px_rgba(255,255,255,0.45),0_4px_10px_rgba(0,0,0,0.28)]`
-                        : "opacity-0",
-                    ].join(" ")}
-                  />
-                );
-              })}
-            </div>
-          </div>
+          <DragGhost
+            piece={draggedPiece}
+            width={draggedBounds.width}
+            height={draggedBounds.height}
+            dragGhostRef={dragGhostRef}
+          />
         ) : null}
 
         {gameOver ? (
-          <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-950/70 px-3 backdrop-blur-sm sm:items-center">
-            <div className="safe-bottom-modal mb-3 w-full max-w-sm rounded-[2rem] border border-white/10 bg-slate-950/95 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
-              <p className="text-[10px] uppercase tracking-[0.24em] text-amber-200/70">
-                Run finished
-              </p>
-              <h2 className="mt-2 text-2xl font-bold text-white">Game Over</h2>
-              <p className="mt-2 text-sm text-white/65">
-                None of the current 3 pieces can be placed on the board.
-              </p>
-
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div className="rounded-2xl bg-white/[0.05] p-3">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">
-                    Score
-                  </p>
-                  <p className="mt-1 text-xl font-bold text-white">{score}</p>
-                </div>
-                <div className="rounded-2xl bg-white/[0.05] p-3">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">
-                    Moves
-                  </p>
-                  <p className="mt-1 text-xl font-bold text-white">{movesUsed}</p>
-                </div>
-              </div>
-
-              <p className="mt-3 text-xs text-white/50">
-                Extra moves used: {extraMovesUsed}
-              </p>
-
-              <div className="mt-5 space-y-2">
-                {rewardAvailable ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleUseExtraMove()}
-                    disabled={submitting}
-                    className="w-full rounded-2xl bg-amber-300 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
-                  >
-                    Use extra move reward
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => void handleBankAndRestart()}
-                  disabled={submitting}
-                  className="w-full rounded-2xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
-                >
-                  Save score and play again
-                </button>
-              </div>
-            </div>
-          </div>
+          <GameOverModal
+            score={score}
+            movesUsed={movesUsed}
+            extraMovesUsed={extraMovesUsed}
+            rewardAvailable={rewardAvailable}
+            submitting={submitting}
+            onUseExtraMove={() => void handleUseExtraMove()}
+            onBankAndRestart={() => void handleBankAndRestart()}
+          />
         ) : null}
       </div>
     </div>
