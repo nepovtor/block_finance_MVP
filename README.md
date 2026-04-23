@@ -1,6 +1,6 @@
 <div align="center">
 
-# BLOCK FINANCE MVP
+# MTBlocks
 
 ### A mobile-first fintech gamification prototype with a premium banking aesthetic and a block puzzle gameplay loop
 
