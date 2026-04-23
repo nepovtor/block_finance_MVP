@@ -103,9 +103,9 @@ export function PieceTray({
                               className={[
                                 "h-5 w-5 rounded-[8px] sm:h-6 sm:w-6",
                                 active
-                                  ? `${piece.shape.color} ${
+                                  ? `piece-cell-3d piece-cell-tray ${piece.shape.color} ${
                                       selected ? "brightness-110" : ""
-                                    } shadow-[inset_0_1px_5px_rgba(255,255,255,0.45),0_3px_8px_rgba(0,0,0,0.28)]`
+                                    }`
                                   : "opacity-0",
                               ].join(" ")}
                             />

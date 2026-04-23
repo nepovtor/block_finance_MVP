@@ -52,7 +52,7 @@ export function DragGhost({
               key={`${piece.instanceId}-drag-${cellIndex}`}
               className={[
                 active
-                  ? `${piece.shape.color} shadow-[inset_0_1px_5px_rgba(255,255,255,0.45),0_4px_10px_rgba(0,0,0,0.28)]`
+                  ? `piece-cell-3d piece-cell-ghost ${piece.shape.color}`
                   : "opacity-0",
               ].join(" ")}
               style={{

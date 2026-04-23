@@ -129,7 +129,7 @@ export function GameBoard({
                 className={[
                   "relative aspect-square overflow-hidden rounded-xl border transition",
                   occupied
-                    ? `${cell.color} border-white/10 shadow-[inset_0_1px_8px_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.24)]`
+                    ? `piece-cell-3d piece-cell-board ${cell.color} border-white/10`
                     : "border-white/5 bg-[#14203b] hover:bg-[#1a2948]",
                   previewClass,
                 ].join(" ")}
