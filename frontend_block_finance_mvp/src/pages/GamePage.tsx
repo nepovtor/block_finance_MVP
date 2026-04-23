@@ -25,15 +25,31 @@ type DragState = {
   pieceId: string;
   clientX: number;
   clientY: number;
+  anchorRow: number;
+  anchorCol: number;
   moved: boolean;
 };
+
+function getDragOrigin(
+  hoveredCell: HoveredCell,
+  dragState: DragState | null
+): HoveredCell {
+  if (!hoveredCell || !dragState) {
+    return hoveredCell;
+  }
+
+  return {
+    row: hoveredCell.row - dragState.anchorRow,
+    col: hoveredCell.col - dragState.anchorCol,
+  };
+}
 
 function getPreviewState(
   board: Board,
   piece: Piece | null,
-  hoveredCell: HoveredCell
+  originCell: HoveredCell
 ) {
-  if (!piece || !hoveredCell) {
+  if (!piece || !originCell) {
     return {
       cells: [] as { row: number; col: number }[],
       valid: false,
@@ -41,8 +57,8 @@ function getPreviewState(
   }
 
   return {
-    cells: getPlacementCells(piece.shape, hoveredCell.row, hoveredCell.col),
-    valid: canPlaceShape(board, piece.shape, hoveredCell.row, hoveredCell.col),
+    cells: getPlacementCells(piece.shape, originCell.row, originCell.col),
+    valid: canPlaceShape(board, piece.shape, originCell.row, originCell.col),
   };
 }
 
@@ -73,6 +89,37 @@ function getBoardCellFromPoint(clientX: number, clientY: number): HoveredCell {
   }
 
   return { row, col };
+}
+
+function getDragAnchor(
+  event: PointerEvent<HTMLButtonElement>,
+  piece: Piece
+): { anchorRow: number; anchorCol: number } {
+  const activeCells = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>("[data-piece-cell]")
+  );
+
+  const closestCell = activeCells.reduce<HTMLElement | null>((closest, cell) => {
+    if (!closest) return cell;
+
+    const cellRect = cell.getBoundingClientRect();
+    const closestRect = closest.getBoundingClientRect();
+    const cellDistance =
+      Math.abs(event.clientX - (cellRect.left + cellRect.width / 2)) +
+      Math.abs(event.clientY - (cellRect.top + cellRect.height / 2));
+    const closestDistance =
+      Math.abs(event.clientX - (closestRect.left + closestRect.width / 2)) +
+      Math.abs(event.clientY - (closestRect.top + closestRect.height / 2));
+
+    return cellDistance < closestDistance ? cell : closest;
+  }, null);
+
+  const fallbackCell = piece.shape.cells[0] ?? { row: 0, col: 0 };
+
+  return {
+    anchorRow: Number(closestCell?.dataset.pieceRow ?? fallbackCell.row),
+    anchorCol: Number(closestCell?.dataset.pieceCol ?? fallbackCell.col),
+  };
 }
 
 function getShapeGridClass(width: number) {
@@ -120,9 +167,10 @@ export default function GamePage() {
   const draggedPiece =
     pieces.find((piece) => piece.instanceId === dragState?.pieceId) ?? null;
 
+  const dragOriginCell = getDragOrigin(hoveredCell, dragState);
   const preview = useMemo(
-    () => getPreviewState(board, draggedPiece ?? selectedPiece, hoveredCell),
-    [board, draggedPiece, hoveredCell, selectedPiece]
+    () => getPreviewState(board, draggedPiece ?? selectedPiece, dragOriginCell),
+    [board, draggedPiece, dragOriginCell, selectedPiece]
   );
 
   const rewardAvailable = reward?.type === "extra_move" && reward.value > 0;
@@ -335,12 +383,16 @@ export default function GamePage() {
     event: PointerEvent<HTMLButtonElement>,
     piece: Piece
   ) {
+    const dragAnchor = getDragAnchor(event, piece);
+
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelectedPieceId(piece.instanceId);
     setDragState({
       pieceId: piece.instanceId,
       clientX: event.clientX,
       clientY: event.clientY,
+      anchorRow: dragAnchor.anchorRow,
+      anchorCol: dragAnchor.anchorCol,
       moved: false,
     });
     setHoveredCell(getBoardCellFromPoint(event.clientX, event.clientY));
@@ -375,8 +427,14 @@ export default function GamePage() {
       suppressNextPieceClick.current = true;
     }
 
-    if (cell) {
-      const placed = placePieceOnBoard(draggedPiece, cell.row, cell.col);
+    const originCell = getDragOrigin(cell, dragState);
+
+    if (originCell) {
+      const placed = placePieceOnBoard(
+        draggedPiece,
+        originCell.row,
+        originCell.col
+      );
       suppressNextPieceClick.current = suppressNextPieceClick.current || placed;
     }
 
@@ -552,6 +610,9 @@ export default function GamePage() {
                                 return (
                                   <div
                                     key={`${piece.instanceId}-${cellIndex}`}
+                                    data-piece-cell={active ? true : undefined}
+                                    data-piece-row={active ? cellRow : undefined}
+                                    data-piece-col={active ? cellCol : undefined}
                                     className={[
                                       "h-5 w-5 rounded-md sm:h-6 sm:w-6",
                                       active
