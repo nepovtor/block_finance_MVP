@@ -1,25 +1,11 @@
 import type { PointerEvent } from "react";
 import { getShapeBounds, type Piece } from "../../game/engine";
 import { type Language, t } from "../../i18n/translations";
+import { getPieceGridClass, getPieceGridStyle } from "./pieceLayout";
 import {
   createPieceCellLookup,
   getPieceCellStyle,
 } from "./pieceContour";
-
-function getShapeGridClass(width: number) {
-  switch (width) {
-    case 1:
-      return "grid-cols-1";
-    case 2:
-      return "grid-cols-2";
-    case 3:
-      return "grid-cols-3";
-    case 4:
-      return "grid-cols-4";
-    default:
-      return "grid-cols-5";
-  }
-}
 
 type PieceTrayProps = {
   pieces: Piece[];
@@ -87,9 +73,8 @@ export function PieceTray({
                     ].join(" ")}
                   >
                     <div
-                      className={["grid gap-0", getShapeGridClass(bounds.width)].join(
-                        " "
-                      )}
+                      className={getPieceGridClass(bounds.width)}
+                      style={getPieceGridStyle()}
                     >
                       {Array.from({ length: bounds.height * bounds.width }).map(
                         (_, cellIndex) => {

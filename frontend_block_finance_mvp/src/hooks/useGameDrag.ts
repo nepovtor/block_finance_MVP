@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { BOARD_SIZE, type Piece } from "../game/engine";
+import { PIECE_CELL_GAP } from "../components/game/pieceLayout";
 
 export type HoveredCell = { row: number; col: number } | null;
 
@@ -13,7 +14,6 @@ export type DragState = {
 };
 
 export const DRAG_GHOST_CELL_SIZE = 28;
-export const DRAG_GHOST_CELL_GAP = 0;
 export const DRAG_GHOST_CELL_RADIUS = 8;
 
 function getDragAnchor(
@@ -145,12 +145,12 @@ export function useGameDrag({
 
     dragGhostRef.current.style.left = `${
       dragState.clientX -
-      (dragState.anchorCol * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_CELL_GAP) +
+      (dragState.anchorCol * (DRAG_GHOST_CELL_SIZE + PIECE_CELL_GAP) +
         DRAG_GHOST_CELL_SIZE / 2)
     }px`;
     dragGhostRef.current.style.top = `${
       dragState.clientY -
-      (dragState.anchorRow * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_CELL_GAP) +
+      (dragState.anchorRow * (DRAG_GHOST_CELL_SIZE + PIECE_CELL_GAP) +
         DRAG_GHOST_CELL_SIZE / 2)
     }px`;
   }, [dragState]);

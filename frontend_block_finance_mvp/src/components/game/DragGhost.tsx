@@ -1,29 +1,14 @@
 import type { Ref } from "react";
 import type { Piece } from "../../game/engine";
 import {
-  DRAG_GHOST_CELL_GAP,
   DRAG_GHOST_CELL_RADIUS,
   DRAG_GHOST_CELL_SIZE,
 } from "../../hooks/useGameDrag";
+import { getPieceGridClass, getPieceGridStyle } from "./pieceLayout";
 import {
   createPieceCellLookup,
   getPieceCellStyle,
 } from "./pieceContour";
-
-function getShapeGridClass(width: number) {
-  switch (width) {
-    case 1:
-      return "grid-cols-1";
-    case 2:
-      return "grid-cols-2";
-    case 3:
-      return "grid-cols-3";
-    case 4:
-      return "grid-cols-4";
-    default:
-      return "grid-cols-5";
-  }
-}
 
 type DragGhostProps = {
   piece: Piece;
@@ -43,8 +28,8 @@ export function DragGhost({
   return (
     <div ref={dragGhostRef} className="pointer-events-none fixed z-50 opacity-85">
       <div
-        className={["grid", getShapeGridClass(width)].join(" ")}
-        style={{ gap: `${DRAG_GHOST_CELL_GAP}px` }}
+        className={getPieceGridClass(width)}
+        style={getPieceGridStyle()}
       >
         {Array.from({ length: height * width }).map((_, cellIndex) => {
           const cellRow = Math.floor(cellIndex / width);
