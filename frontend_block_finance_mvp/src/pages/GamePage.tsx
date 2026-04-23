@@ -84,10 +84,7 @@ export default function GamePage() {
     boardRef,
     dragGhostRef,
     dragState,
-    hoveredCell,
     dragOriginCell,
-    handleBoardPreview,
-    handleBoardLeave,
     handlePiecePointerDown,
     handlePiecePointerMove,
     handlePiecePointerUp,
@@ -97,7 +94,6 @@ export default function GamePage() {
     resetDragState,
   } = useGameDrag({
     pieces,
-    selectedPiece,
     setSelectedPieceId,
     placePieceOnBoard,
   });
@@ -364,28 +360,28 @@ export default function GamePage() {
             invalidMovePulse={invalidMovePulse}
             previewCellMap={previewCellMap}
             clearedCellMap={clearedCellMap}
-            handleBoardPreview={handleBoardPreview}
-            handleBoardLeave={handleBoardLeave}
             handleBoardClick={handleBoardClick}
           />
         </main>
 
-        <PieceTray
-          pieces={pieces}
-          selectedPieceId={selectedPieceId}
-          dragPieceId={dragState?.pieceId}
-          loading={loading}
-          submitting={submitting}
-          gameOver={gameOver}
-          error={error}
-          handlePieceClick={handlePieceClick}
-          handlePiecePointerDown={handlePiecePointerDown}
-          handlePiecePointerMove={handlePiecePointerMove}
-          handlePiecePointerUp={handlePiecePointerUp}
-          handlePiecePointerCancel={handlePiecePointerCancel}
-          handleRestart={() => void handleRestart()}
-          handleBankAndRestart={() => void handleBankAndRestart()}
-        />
+        {!gameOver ? (
+          <PieceTray
+            pieces={pieces}
+            selectedPieceId={selectedPieceId}
+            dragPieceId={dragState?.pieceId}
+            loading={loading}
+            submitting={submitting}
+            gameOver={gameOver}
+            error={error}
+            handlePieceClick={handlePieceClick}
+            handlePiecePointerDown={handlePiecePointerDown}
+            handlePiecePointerMove={handlePiecePointerMove}
+            handlePiecePointerUp={handlePiecePointerUp}
+            handlePiecePointerCancel={handlePiecePointerCancel}
+            handleRestart={() => void handleRestart()}
+            handleBankAndRestart={() => void handleBankAndRestart()}
+          />
+        ) : null}
 
         {dragState && draggedPiece && draggedBounds ? (
           <DragGhost
@@ -403,6 +399,7 @@ export default function GamePage() {
             extraMovesUsed={extraMovesUsed}
             rewardAvailable={rewardAvailable}
             submitting={submitting}
+            onRestart={() => void handleRestart()}
             onUseExtraMove={() => void handleUseExtraMove()}
             onBankAndRestart={() => void handleBankAndRestart()}
           />

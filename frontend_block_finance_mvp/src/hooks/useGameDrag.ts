@@ -13,7 +13,8 @@ export type DragState = {
 };
 
 export const DRAG_GHOST_CELL_SIZE = 28;
-export const DRAG_GHOST_GAP = 0;
+export const DRAG_GHOST_CELL_GAP = 0;
+export const DRAG_GHOST_CELL_RADIUS = 8;
 
 function getDragAnchor(
   event: PointerEvent<HTMLButtonElement>,
@@ -124,14 +125,12 @@ function getBoardCellFromPoint(
 
 type UseGameDragParams = {
   pieces: Piece[];
-  selectedPiece: Piece | null;
   setSelectedPieceId: (pieceId: string | null) => void;
   placePieceOnBoard: (piece: Piece | null, row: number, col: number) => boolean;
 };
 
 export function useGameDrag({
   pieces,
-  selectedPiece,
   setSelectedPieceId,
   placePieceOnBoard,
 }: UseGameDragParams) {
@@ -146,12 +145,12 @@ export function useGameDrag({
 
     dragGhostRef.current.style.left = `${
       dragState.clientX -
-      (dragState.anchorCol * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_GAP) +
+      (dragState.anchorCol * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_CELL_GAP) +
         DRAG_GHOST_CELL_SIZE / 2)
     }px`;
     dragGhostRef.current.style.top = `${
       dragState.clientY -
-      (dragState.anchorRow * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_GAP) +
+      (dragState.anchorRow * (DRAG_GHOST_CELL_SIZE + DRAG_GHOST_CELL_GAP) +
         DRAG_GHOST_CELL_SIZE / 2)
     }px`;
   }, [dragState]);
@@ -162,16 +161,6 @@ export function useGameDrag({
 
   function resetDragState() {
     setDragState(null);
-    setHoveredCell(null);
-  }
-
-  function handleBoardPreview(row: number, col: number) {
-    if (dragState || !selectedPiece) return;
-    setHoveredCell({ row, col });
-  }
-
-  function handleBoardLeave() {
-    if (dragState) return;
     setHoveredCell(null);
   }
 
@@ -256,10 +245,7 @@ export function useGameDrag({
     boardRef,
     dragGhostRef,
     dragState,
-    hoveredCell,
     dragOriginCell: getDragOrigin(hoveredCell, dragState),
-    handleBoardPreview,
-    handleBoardLeave,
     handlePiecePointerDown,
     handlePiecePointerMove,
     handlePiecePointerUp,

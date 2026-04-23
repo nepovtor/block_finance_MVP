@@ -4,6 +4,7 @@ type GameOverModalProps = {
   extraMovesUsed: number;
   rewardAvailable: boolean;
   submitting: boolean;
+  onRestart: () => void;
   onUseExtraMove: () => void;
   onBankAndRestart: () => void;
 };
@@ -14,6 +15,7 @@ export function GameOverModal({
   extraMovesUsed,
   rewardAvailable,
   submitting,
+  onRestart,
   onUseExtraMove,
   onBankAndRestart,
 }: GameOverModalProps) {
@@ -58,6 +60,14 @@ export function GameOverModal({
               Use extra move reward
             </button>
           ) : null}
+          <button
+            type="button"
+            onClick={onRestart}
+            disabled={submitting}
+            className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            Restart
+          </button>
           <button
             type="button"
             onClick={onBankAndRestart}

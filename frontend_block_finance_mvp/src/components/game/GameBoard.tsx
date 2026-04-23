@@ -15,8 +15,6 @@ type GameBoardProps = {
   invalidMovePulse: boolean;
   previewCellMap: Map<string, boolean>;
   clearedCellMap: Map<string, ClearedCellEffect>;
-  handleBoardPreview: (row: number, col: number) => void;
-  handleBoardLeave: () => void;
   handleBoardClick: (row: number, col: number) => void;
 };
 
@@ -27,8 +25,6 @@ export function GameBoard({
   invalidMovePulse,
   previewCellMap,
   clearedCellMap,
-  handleBoardPreview,
-  handleBoardLeave,
   handleBoardClick,
 }: GameBoardProps) {
   return (
@@ -62,9 +58,6 @@ export function GameBoard({
                 data-board-cell
                 data-row={rowIndex}
                 data-col={colIndex}
-                onPointerEnter={() => handleBoardPreview(rowIndex, colIndex)}
-                onPointerMove={() => handleBoardPreview(rowIndex, colIndex)}
-                onPointerLeave={handleBoardLeave}
                 onClick={() => handleBoardClick(rowIndex, colIndex)}
                 className={[
                   "relative aspect-square overflow-hidden rounded-xl border transition",
