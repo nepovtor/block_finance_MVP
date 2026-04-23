@@ -67,6 +67,7 @@ export default function GamePage() {
   const [score, setScore] = useState(0);
   const [movesUsed, setMovesUsed] = useState(0);
   const [extraMovesUsed, setExtraMovesUsed] = useState(0);
+  const [comboStreak, setComboStreak] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -133,6 +134,7 @@ export default function GamePage() {
         setScore(0);
         setMovesUsed(0);
         setExtraMovesUsed(0);
+        setComboStreak(0);
         setGameOver(false);
         setError("");
         setStatusText("Fresh run started. Pick a shape and tap the board.");
@@ -204,6 +206,7 @@ export default function GamePage() {
     setScore(0);
     setMovesUsed(0);
     setExtraMovesUsed(0);
+    setComboStreak(0);
     setGameOver(false);
     setError("");
     setStatusText("Fresh run started. Pick a shape and tap the board.");
@@ -244,6 +247,7 @@ export default function GamePage() {
       setPieces(nextPieces);
       setSelectedPieceId(nextPieces[0]?.instanceId ?? null);
       setGameOver(false);
+      setComboStreak(0);
       setExtraMovesUsed((current) => current + 1);
       setStatusText("Extra move used. New pieces dealt.");
     } catch (err) {
@@ -290,6 +294,10 @@ export default function GamePage() {
 
     setError("");
     const move = placeShape(board, piece.shape, row, col);
+    const clearedLineCount = move.clearedRows.length + move.clearedCols.length;
+    const nextComboStreak = clearedLineCount > 0 ? comboStreak + 1 : 0;
+    const comboBonus =
+      nextComboStreak === 3 ? 100 : nextComboStreak > 3 ? 150 : 0;
     const remainingPieces = pieces.filter(
       (currentPiece) => currentPiece.instanceId !== piece.instanceId
     );
@@ -297,8 +305,9 @@ export default function GamePage() {
       remainingPieces.length === 0 ? createPieceBatch() : remainingPieces;
 
     setBoard(move.board);
-    setScore((current) => current + move.scoreGained);
+    setScore((current) => current + move.scoreGained + comboBonus);
     setMovesUsed((current) => current + 1);
+    setComboStreak(nextComboStreak);
     setPieces(nextPieces);
     setSelectedPieceId(nextPieces[0]?.instanceId ?? null);
     clearHoveredCell();
@@ -308,7 +317,9 @@ export default function GamePage() {
     if (move.clearedRows.length > 0 || move.clearedCols.length > 0) {
       setBoardFlash(true);
       setStatusText(
-        `Clean clear: ${move.clearedRows.length} row(s), ${move.clearedCols.length} column(s).`
+        comboBonus > 0
+          ? `Combo x${nextComboStreak}: +${comboBonus} bonus. Clear ${move.clearedRows.length} row(s), ${move.clearedCols.length} column(s).`
+          : `Clean clear: ${move.clearedRows.length} row(s), ${move.clearedCols.length} column(s).`
       );
     } else {
       setStatusText(`Placed ${piece.shape.name} for +${move.scoreGained}.`);
