@@ -9,16 +9,6 @@ import {
 } from "../services/api";
 import { trackEvent } from "../services/analytics";
 import {
-  BankIcon,
-  CardIcon,
-  CashbackIcon,
-  CoinIcon,
-  DollarIcon,
-  EuroIcon,
-  HomeIcon,
-  RewardIcon,
-} from "../components/AppIcons";
-import {
   Board,
   Piece,
   canPlaceShape,
@@ -159,33 +149,33 @@ function getPatternClass(pattern: Piece["shape"]["accentPattern"]) {
   return `pattern-${pattern}`;
 }
 
-function getFinanceIconComponent(
+function getFinanceIcon(
   pattern: Piece["shape"]["accentPattern"],
   accentLabel: string
 ) {
   if (accentLabel === "$") {
-    return DollarIcon;
+    return "$";
   }
 
   if (accentLabel === "€") {
-    return EuroIcon;
+    return "€";
   }
 
   switch (pattern) {
     case "coin":
-      return CoinIcon;
+      return "◎";
     case "bill":
-      return DollarIcon;
+      return "$";
     case "vault":
-      return BankIcon;
+      return "▥";
     case "card":
-      return CardIcon;
+      return "▭";
     case "chart":
-      return CashbackIcon;
+      return "↺";
     case "bank":
-      return BankIcon;
+      return "▦";
     default:
-      return DollarIcon;
+      return "$";
   }
 }
 
@@ -196,7 +186,6 @@ function renderFinanceCell(
   sizeClass: string
 ) {
   const tone = getPieceTone(color);
-  const FinanceIcon = getFinanceIconComponent(accentPattern, accentLabel);
 
   return (
     <>
@@ -222,7 +211,7 @@ function renderFinanceCell(
         aria-hidden="true"
       />
       <span className="finance-label" style={{ color: tone.label }} aria-hidden="true">
-        <FinanceIcon className="h-full w-full" />
+        {getFinanceIcon(accentPattern, accentLabel)}
       </span>
     </>
   );
@@ -773,13 +762,6 @@ export default function GamePage() {
               <div className="brand-badge-neutral">
                 {rewardAvailable ? "Bonus ready" : "Bonus locked"}
               </div>
-              <Link
-                to="/dashboard"
-                className="glow-button inline-flex min-h-10 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium text-slate-100"
-              >
-                <HomeIcon className="h-4 w-4" />
-                Dashboard
-              </Link>
             </div>
 
             <div className="mt-3 hidden gap-3 sm:grid-cols-[1.2fr_0.8fr] lg:grid">
@@ -916,7 +898,7 @@ export default function GamePage() {
                 {pieces.map((piece) => {
                   const selected = piece.instanceId === selectedPieceId;
                   const playable = hasAnyValidMove(board, [piece]);
-                  const PieceIcon = getFinanceIconComponent(
+                  const icon = getFinanceIcon(
                     piece.shape.accentPattern,
                     piece.shape.accentLabel
                   );
@@ -938,7 +920,7 @@ export default function GamePage() {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="brand-badge-neutral min-w-0 px-2 py-1 text-[0.7rem]">
-                          <PieceIcon className="h-3.5 w-3.5" />
+                          {icon}
                         </span>
                         <span
                           className={`h-2.5 w-2.5 rounded-full ${
@@ -956,15 +938,13 @@ export default function GamePage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="reward-surface-muted px-3 py-3">
-                  <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-slate-400">
-                    <BankIcon className="h-3.5 w-3.5" />
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
                     Moves
                   </div>
                   <div className="mt-1 text-lg font-semibold text-white">{movesUsed}</div>
                 </div>
                 <div className={rewardAvailable ? "reward-surface px-3 py-3 border-amber-300/20" : "reward-surface-muted px-3 py-3"}>
-                  <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-slate-400">
-                    <RewardIcon className="h-3.5 w-3.5" />
+                  <div className="text-xs uppercase tracking-[0.16em] text-slate-400">
                     Bonus
                   </div>
                   <div className="mt-1 text-sm font-semibold text-white">
@@ -1007,14 +987,8 @@ export default function GamePage() {
                 {rewardAvailable ? `${reward?.type} x${reward?.value}` : "None"}
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
-                <span className="bonus-chip bonus-chip-cashback inline-flex items-center gap-1.5">
-                  <CashbackIcon className="h-3 w-3" />
-                  Cashback
-                </span>
-                <span className="bonus-chip bonus-chip-reward inline-flex items-center gap-1.5">
-                  <RewardIcon className="h-3 w-3" />
-                  Bonus hold
-                </span>
+                <span className="bonus-chip bonus-chip-cashback">Cashback</span>
+                <span className="bonus-chip bonus-chip-reward">Bonus hold</span>
               </div>
             </div>
           </div>
