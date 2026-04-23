@@ -42,18 +42,18 @@ export function GameHeader({
         );
 
   return (
-    <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-3 border-b border-white/10 bg-slate-950/70 px-3 pb-2 backdrop-blur">
+    <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-2 border-b border-white/8 bg-slate-950/55 px-3 pb-1.5 backdrop-blur">
       <div className="flex items-center justify-between gap-2">
         <Link
           to="/dashboard"
-          className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/85"
+          className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-white/80"
         >
           ← Dashboard
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <div
             className={[
-              "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+              "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
               scorePulse ? "animate-score-pop" : "",
               scorePulse
                 ? "bg-cyan-300 text-slate-950"
@@ -64,7 +64,7 @@ export function GameHeader({
           </div>
           <div
             className={[
-              "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+              "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
               rewardAvailable ? "animate-reward-pop" : "",
               rewardAvailable
                 ? "bg-amber-300 text-slate-950"
@@ -75,60 +75,51 @@ export function GameHeader({
           </div>
         </div>
       </div>
-      <div className="mt-2 flex items-end justify-between gap-3">
+      <div className="mt-1.5 flex items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] uppercase tracking-[0.26em] text-cyan-200/70">
+          <p className="text-[9px] uppercase tracking-[0.24em] text-cyan-200/55">
             Block Finance
           </p>
-          <h1 className="text-lg font-bold leading-none">Game</h1>
+          <h1 className="text-base font-semibold leading-none text-white/92">Game</h1>
         </div>
-        <p className="max-w-[11rem] text-right text-[11px] leading-4 text-white/60">
+        <p className="max-w-[10.5rem] text-right text-[10px] font-medium leading-3.5 text-white/45">
           {statusText.replace(/\n/g, " ")}
         </p>
       </div>
-      <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.04] px-2.5 py-2">
+      <div className="mt-1.5">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1.5">
             <div
               className={[
-                "flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-bold tracking-[0.12em]",
+                "flex h-5 min-w-5 items-center justify-center rounded-full border px-1 text-[9px] font-semibold tracking-[0.1em]",
                 nextMilestone.icon === "MTB"
-                  ? "border-amber-300/40 bg-amber-300/15 text-amber-100"
-                  : "border-cyan-300/30 bg-cyan-300/10 text-cyan-100",
+                  ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
+                  : "border-cyan-300/20 bg-cyan-300/[0.08] text-cyan-100/85",
               ].join(" ")}
             >
               {nextMilestone.icon}
             </div>
-            <div className="min-w-0">
-              <p className="truncate text-[10px] uppercase tracking-[0.18em] text-white/45">
-                Achievement
-              </p>
-              <p className="truncate text-xs font-semibold text-white/90">
-                {score >= nextMilestone.score
-                  ? currentAchievement.label
-                  : nextMilestone.label}
-              </p>
-            </div>
+            <p className="truncate text-[10px] font-medium text-white/58">
+              {score >= nextMilestone.score
+                ? currentAchievement.label
+                : `${nextMilestone.label} ${Math.max(nextMilestone.score - score, 0)} left`}
+            </p>
           </div>
-          <p className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55">
-            {Math.max(nextMilestone.score - score, 0)} to go
+          <p className="shrink-0 text-[10px] font-medium text-white/38">
+            {score}/{nextMilestone.score}
           </p>
         </div>
-        <div className="mt-2">
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="mt-1">
+          <div className="h-1 overflow-hidden rounded-full bg-white/8">
             <div
               className={[
                 "h-full rounded-full transition-[width]",
                 nextMilestone.icon === "MTB"
-                  ? "bg-[linear-gradient(90deg,_#fbbf24,_#fde68a)]"
-                  : "bg-[linear-gradient(90deg,_#22d3ee,_#67e8f9)]",
+                  ? "bg-[linear-gradient(90deg,_rgba(251,191,36,0.9),_rgba(253,230,138,0.95))]"
+                  : "bg-[linear-gradient(90deg,_rgba(34,211,238,0.78),_rgba(103,232,249,0.9))]",
               ].join(" ")}
               style={{ width: `${progressValue}%` }}
             />
-          </div>
-          <div className="mt-1 flex items-center justify-between text-[10px] text-white/40">
-            <span>{score} pts</span>
-            <span>{nextMilestone.score} pts</span>
           </div>
         </div>
       </div>

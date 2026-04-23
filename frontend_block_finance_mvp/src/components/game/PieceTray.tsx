@@ -23,7 +23,6 @@ type PieceTrayProps = {
   loading: boolean;
   submitting: boolean;
   gameOver: boolean;
-  error: string;
   handlePieceClick: (piece: Piece) => void;
   handlePiecePointerDown: (
     event: PointerEvent<HTMLButtonElement>,
@@ -43,7 +42,6 @@ export function PieceTray({
   loading,
   submitting,
   gameOver,
-  error,
   handlePieceClick,
   handlePiecePointerDown,
   handlePiecePointerMove,
@@ -135,12 +133,6 @@ export function PieceTray({
                 {gameOver ? "Save + play again" : "Bank score"}
               </button>
             </div>
-
-            {error ? (
-              <p className="mt-2 rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
-                {error}
-              </p>
-            ) : null}
           </div>
         </div>
       </div>

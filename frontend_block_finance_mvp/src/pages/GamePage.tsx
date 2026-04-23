@@ -372,7 +372,6 @@ export default function GamePage() {
             loading={loading}
             submitting={submitting}
             gameOver={gameOver}
-            error={error}
             handlePieceClick={handlePieceClick}
             handlePiecePointerDown={handlePiecePointerDown}
             handlePiecePointerMove={handlePiecePointerMove}
