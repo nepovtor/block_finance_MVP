@@ -147,6 +147,17 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
+export function MtbMIcon(props: IconProps) {
+  return (
+    <BaseIcon viewBox="0 0 24 24" {...props}>
+      <path d="M4.5 18V6h2.8l4.7 6.1L16.7 6h2.8v12" />
+      <path d="M4.5 18h3.2V11.4" />
+      <path d="M19.5 18h-3.2v-6.6" />
+      <path d="M10 18v-4.1l2-2.6 2 2.6V18" />
+    </BaseIcon>
+  );
+}
+
 export const financeIcons = {
   dollar: DollarIcon,
   euro: EuroIcon,
@@ -159,5 +170,5 @@ export const financeIcons = {
   challenge: ChallengeIcon,
   referral: ReferralIcon,
   home: HomeIcon,
+  mtbM: MtbMIcon,
 } as const;
-

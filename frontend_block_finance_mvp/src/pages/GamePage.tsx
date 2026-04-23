@@ -16,6 +16,7 @@ import {
   DollarIcon,
   EuroIcon,
   HomeIcon,
+  MtbMIcon,
   RewardIcon,
 } from "../components/AppIcons";
 import {
@@ -418,6 +419,14 @@ export default function GamePage() {
   }, [board, loading, pieces]);
 
   useEffect(() => {
+    document.body.classList.add("game-screen");
+
+    return () => {
+      document.body.classList.remove("game-screen");
+    };
+  }, []);
+
+  useEffect(() => {
     if (!scorePulse) {
       return;
     }
@@ -636,6 +645,7 @@ export default function GamePage() {
 
     const target = event.currentTarget;
     const rect = target.getBoundingClientRect();
+    event.preventDefault();
 
     setSelectedPieceId(pieceId);
     setError("");
@@ -749,12 +759,18 @@ export default function GamePage() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-clip text-slate-100">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 p-4 lg:flex-row lg:items-start">
+    <div className="h-[100dvh] overflow-hidden text-slate-100">
+      <div className="mx-auto flex h-full max-w-7xl flex-col gap-4 overflow-hidden p-3 sm:p-4 lg:flex-row lg:items-start">
         <section className="flex flex-1 flex-col items-center space-y-4">
-          <div className="glass-panel animate-rise-in w-full max-w-3xl p-4 sm:p-6">
+          <div className="glass-panel animate-rise-in mtb-surface w-full max-w-3xl p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3">
-              <h1 className="text-xl font-bold text-white sm:text-3xl">Block Puzzle</h1>
+              <div className="flex items-center gap-3">
+                <span className="mtb-logo-badge">
+                  <MtbMIcon className="h-4 w-4 text-sky-200" />
+                  MTB Moby
+                </span>
+                <h1 className="text-xl font-bold text-white sm:text-3xl">Block Puzzle</h1>
+              </div>
               <div className="hidden items-center gap-2 lg:flex">
                 <div className="brand-badge-bonus">
                   {rewardAvailable ? "Reward ready" : "Reward locked"}
@@ -768,7 +784,7 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="mt-3 flex gap-2 lg:hidden">
+            <div className="mt-3 flex flex-wrap gap-2 lg:hidden">
               <div className="brand-badge-finance">Score {score}</div>
               <div className="brand-badge-neutral">
                 {rewardAvailable ? "Bonus ready" : "Bonus locked"}
@@ -796,10 +812,11 @@ export default function GamePage() {
 
           <div
             className={[
-              "glass-panel bg-grid relative w-full max-w-3xl overflow-hidden p-4 sm:p-6",
+              "glass-panel bg-grid relative w-full max-w-3xl flex-1 overflow-hidden p-3 sm:p-5",
               boardFlash ? "animate-board-flash" : "",
               invalidMovePulse ? "animate-shake-soft" : "",
             ].join(" ")}
+            style={{ touchAction: "none" }}
           >
             <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
             <div className="absolute -left-6 top-8 h-28 w-28 rounded-full bg-emerald-300/10 blur-3xl" />
@@ -911,7 +928,7 @@ export default function GamePage() {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 lg:hidden">
+            <div className="mt-3 grid gap-2 lg:hidden">
               <div className="grid grid-cols-3 gap-2">
                 {pieces.map((piece) => {
                   const selected = piece.instanceId === selectedPieceId;
