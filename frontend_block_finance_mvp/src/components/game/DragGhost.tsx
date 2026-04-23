@@ -62,7 +62,9 @@ export function DragGhost({
                   : "opacity-0",
               ].join(" ")}
               style={cellStyle}
-            />
+            >
+              {active ? <span className="piece-cell-surface" /> : null}
+            </div>
           );
         })}
       </div>

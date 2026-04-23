@@ -120,6 +120,30 @@ export default function GamePage() {
   const rewardAvailable = reward?.type === "extra_move" && reward.value > 0;
 
   useEffect(() => {
+    const documentElementStyle = document.documentElement.style;
+    const bodyStyle = document.body.style;
+    const previousHtmlOverflow = documentElementStyle.overflow;
+    const previousHtmlOverscrollBehavior = documentElementStyle.overscrollBehavior;
+    const previousBodyOverflow = bodyStyle.overflow;
+    const previousBodyOverscrollBehavior = bodyStyle.overscrollBehavior;
+    const previousBodyTouchAction = bodyStyle.touchAction;
+
+    documentElementStyle.overflow = "hidden";
+    documentElementStyle.overscrollBehavior = "none";
+    bodyStyle.overflow = "hidden";
+    bodyStyle.overscrollBehavior = "none";
+    bodyStyle.touchAction = "none";
+
+    return () => {
+      documentElementStyle.overflow = previousHtmlOverflow;
+      documentElementStyle.overscrollBehavior = previousHtmlOverscrollBehavior;
+      bodyStyle.overflow = previousBodyOverflow;
+      bodyStyle.overscrollBehavior = previousBodyOverscrollBehavior;
+      bodyStyle.touchAction = previousBodyTouchAction;
+    };
+  }, []);
+
+  useEffect(() => {
     let active = true;
 
     async function beginGameSession() {
@@ -362,7 +386,7 @@ export default function GamePage() {
   const draggedBounds = draggedPiece ? getShapeBounds(draggedPiece.shape) : null;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#1e3359_0%,_#0d1528_46%,_#050a14_100%)] text-white">
+    <div className="game-screen bg-[radial-gradient(circle_at_top,_#1e3359_0%,_#0d1528_46%,_#050a14_100%)] text-white">
       <style>{`
         @keyframes line-clear-bloom {
           0% { opacity: 1; transform: scale(1); filter: saturate(1); }
@@ -393,7 +417,7 @@ export default function GamePage() {
         .line-clear-2 { animation: line-clear-drop ${CLEAR_ANIMATION_MS}ms ease-in forwards; }
         .line-clear-3 { animation: line-clear-shrink ${CLEAR_ANIMATION_MS}ms cubic-bezier(0.4, 0, 0.2, 1) forwards; }
       `}</style>
-      <div className="mx-auto flex min-h-screen max-w-md flex-col px-3 pb-40 pt-3">
+      <div className="mx-auto flex h-full max-w-md flex-col overflow-hidden px-3 pb-40 pt-3">
         <GameHeader
           score={score}
           scorePulse={scorePulse}

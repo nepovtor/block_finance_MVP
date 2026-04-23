@@ -102,7 +102,9 @@ export function PieceTray({
                                     }`
                                   : "opacity-0",
                               ].join(" ")}
-                            />
+                            >
+                              {active ? <span className="piece-cell-surface" /> : null}
+                            </div>
                           );
                         }
                       )}
