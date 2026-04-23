@@ -379,122 +379,86 @@ export default function GamePage() {
 
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center">
           <div
-            className="pointer-events-auto w-full max-w-md px-3"
+            className="pointer-events-auto w-full max-w-md"
             style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
           >
-            <div className="rounded-t-[2rem] border border-white/10 bg-slate-950/92 p-3 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.24em] text-white/45">
-                    Pieces
-                  </p>
-                  <p className="text-sm font-semibold text-white/85">
-                    Pick one and tap the board
-                  </p>
-                </div>
-                <div
-                  className={[
-                    "rounded-full px-2.5 py-1 text-[11px] font-semibold",
-                    rewardAvailable
-                      ? "bg-amber-300 text-slate-950"
-                      : "bg-white/10 text-white/60",
-                  ].join(" ")}
-                >
-                  {rewardAvailable ? `extra_move ×${reward?.value}` : "reward empty"}
-                </div>
-              </div>
+            <div className="border-t border-white/10 bg-slate-950/92 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+              <div className="flex justify-center px-3 py-4">
+                <div className="grid grid-cols-3 gap-3">
+                    {pieces.map((piece) => {
+                      const bounds = getShapeBounds(piece.shape);
+                      const selected = piece.instanceId === selectedPieceId;
 
-              <div className="grid grid-cols-3 gap-2">
-                {pieces.map((piece) => {
-                  const bounds = getShapeBounds(piece.shape);
-                  const selected = piece.instanceId === selectedPieceId;
-                  const playable = hasAnyValidMove(board, [piece]);
-
-                  return (
-                    <button
-                      key={piece.instanceId}
-                      type="button"
-                      onClick={() => setSelectedPieceId(piece.instanceId)}
-                      className={[
-                        "rounded-2xl border p-2.5 text-left transition",
-                        selected
-                          ? "border-cyan-300/75 bg-cyan-300/10 ring-2 ring-cyan-300/20"
-                          : "border-white/8 bg-white/[0.04]",
-                      ].join(" ")}
-                    >
-                      <div className="mb-2 flex items-center justify-between gap-1">
-                        <span className="truncate text-[11px] font-semibold text-white/90">
-                          {piece.shape.name}
-                        </span>
-                        <span
+                      return (
+                        <button
+                          key={piece.instanceId}
+                          type="button"
+                          onClick={() => setSelectedPieceId(piece.instanceId)}
                           className={[
-                            "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                            playable
-                              ? "bg-emerald-400/15 text-emerald-200"
-                              : "bg-white/8 text-white/40",
+                            "flex flex-col items-center justify-center p-2 transition",
+                            selected ? "ring-2 ring-cyan-300/60 rounded-lg" : "",
                           ].join(" ")}
                         >
-                          {playable ? "fit" : "blocked"}
-                        </span>
-                      </div>
+                          <div
+                            className="grid gap-0.5"
+                            style={{
+                              gridTemplateColumns: `repeat(${bounds.width}, minmax(0, 1fr))`,
+                            }}
+                          >
+                            {Array.from({ length: bounds.height * bounds.width }).map(
+                              (_, cellIndex) => {
+                                const cellRow = Math.floor(cellIndex / bounds.width);
+                                const cellCol = cellIndex % bounds.width;
+                                const active = piece.shape.cells.some(
+                                  (cell) => cell.row === cellRow && cell.col === cellCol
+                                );
 
-                      <div
-                        className="grid gap-1"
-                        style={{
-                          gridTemplateColumns: `repeat(${bounds.width}, minmax(0, 1fr))`,
-                        }}
-                      >
-                        {Array.from({ length: bounds.height * bounds.width }).map(
-                          (_, cellIndex) => {
-                            const cellRow = Math.floor(cellIndex / bounds.width);
-                            const cellCol = cellIndex % bounds.width;
-                            const active = piece.shape.cells.some(
-                              (cell) => cell.row === cellRow && cell.col === cellCol
-                            );
-
-                            return (
-                              <div
-                                key={`${piece.instanceId}-${cellIndex}`}
-                                className={[
-                                  "aspect-square rounded-md",
-                                  active
-                                    ? "bg-gradient-to-br from-cyan-200 via-cyan-300 to-blue-400 shadow-[inset_0_1px_6px_rgba(255,255,255,0.7)]"
-                                    : "bg-white/[0.05]",
-                                ].join(" ")}
-                              />
-                            );
-                          }
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+                                return (
+                                  <div
+                                    key={`${piece.instanceId}-${cellIndex}`}
+                                    className={[
+                                      "aspect-square rounded-sm",
+                                      active
+                                        ? "bg-gradient-to-br from-cyan-200 via-cyan-300 to-blue-400 shadow-[inset_0_1px_6px_rgba(255,255,255,0.7)]"
+                                        : "bg-slate-800 border border-slate-700",
+                                    ].join(" ")}
+                                  />
+                                );
+                              }
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
               </div>
 
-              <div className="mt-3 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => void handleRestart()}
-                  disabled={loading || submitting}
-                  className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Restart
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleBankAndRestart()}
-                  disabled={loading || submitting}
-                  className="flex-1 rounded-2xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
-                >
-                  {gameOver ? "Save + play again" : "Bank score"}
-                </button>
-              </div>
+              <div className="border-t border-white/10 px-3 py-3">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleRestart()}
+                    disabled={loading || submitting}
+                    className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    Restart
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleBankAndRestart()}
+                    disabled={loading || submitting}
+                    className="flex-1 rounded-2xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
+                  >
+                    {gameOver ? "Save + play again" : "Bank score"}
+                  </button>
+                </div>
 
-              {error ? (
-                <p className="mt-2 rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
-                  {error}
-                </p>
-              ) : null}
+                {error ? (
+                  <p className="mt-2 rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+                    {error}
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
