@@ -40,9 +40,13 @@ export function GameHeader({
           0,
           Math.min(100, ((score - progressStart) / progressRange) * 100)
         );
+  const progressLabel =
+    score >= nextMilestone.score
+      ? currentAchievement.label
+      : `${nextMilestone.icon} ${Math.max(nextMilestone.score - score, 0)} left`;
 
   return (
-    <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-2 border-b border-white/8 bg-slate-950/55 px-3 pb-1.5 backdrop-blur">
+    <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-2 border-b border-white/8 bg-slate-950/50 px-3 pb-1 backdrop-blur">
       <div className="flex items-center justify-between gap-2">
         <Link
           to="/dashboard"
@@ -75,53 +79,21 @@ export function GameHeader({
           </div>
         </div>
       </div>
-      <div className="mt-1.5 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[9px] uppercase tracking-[0.24em] text-cyan-200/55">
-            Block Finance
-          </p>
-          <h1 className="text-base font-semibold leading-none text-white/92">Game</h1>
+      <div className="mt-1.5 flex items-center gap-2">
+        <div className="h-[2px] flex-1 overflow-hidden rounded-full bg-white/8">
+          <div
+            className={[
+              "h-full rounded-full transition-[width]",
+              nextMilestone.icon === "MTB"
+                ? "bg-[linear-gradient(90deg,_rgba(251,191,36,0.88),_rgba(253,230,138,0.92))]"
+                : "bg-[linear-gradient(90deg,_rgba(34,211,238,0.72),_rgba(103,232,249,0.82))]",
+            ].join(" ")}
+            style={{ width: `${progressValue}%` }}
+          />
         </div>
-        <p className="max-w-[10.5rem] text-right text-[10px] font-medium leading-3.5 text-white/45">
-          {statusText.replace(/\n/g, " ")}
+        <p className="max-w-[11rem] truncate text-[9px] font-medium text-white/40">
+          {statusText.replace(/\n/g, " ")} · {progressLabel}
         </p>
-      </div>
-      <div className="mt-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <div
-              className={[
-                "flex h-5 min-w-5 items-center justify-center rounded-full border px-1 text-[9px] font-semibold tracking-[0.1em]",
-                nextMilestone.icon === "MTB"
-                  ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
-                  : "border-cyan-300/20 bg-cyan-300/[0.08] text-cyan-100/85",
-              ].join(" ")}
-            >
-              {nextMilestone.icon}
-            </div>
-            <p className="truncate text-[10px] font-medium text-white/58">
-              {score >= nextMilestone.score
-                ? currentAchievement.label
-                : `${nextMilestone.label} ${Math.max(nextMilestone.score - score, 0)} left`}
-            </p>
-          </div>
-          <p className="shrink-0 text-[10px] font-medium text-white/38">
-            {score}/{nextMilestone.score}
-          </p>
-        </div>
-        <div className="mt-1">
-          <div className="h-1 overflow-hidden rounded-full bg-white/8">
-            <div
-              className={[
-                "h-full rounded-full transition-[width]",
-                nextMilestone.icon === "MTB"
-                  ? "bg-[linear-gradient(90deg,_rgba(251,191,36,0.9),_rgba(253,230,138,0.95))]"
-                  : "bg-[linear-gradient(90deg,_rgba(34,211,238,0.78),_rgba(103,232,249,0.9))]",
-              ].join(" ")}
-              style={{ width: `${progressValue}%` }}
-            />
-          </div>
-        </div>
       </div>
     </header>
   );
