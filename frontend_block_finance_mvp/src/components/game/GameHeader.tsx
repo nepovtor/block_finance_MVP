@@ -64,49 +64,49 @@ export function GameHeader({
     : "bg-[linear-gradient(90deg,_rgba(16,185,129,0.95),_rgba(34,211,238,0.92))]";
 
   return (
-    <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-2 border-b border-white/8 bg-[linear-gradient(180deg,rgba(2,6,23,0.92),rgba(15,23,42,0.72))] px-3 pb-2 backdrop-blur-xl">
-      <div className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.68),rgba(15,23,42,0.42))] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_14px_30px_rgba(2,6,23,0.2)]">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
+    <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-1.5 border-b border-white/8 bg-[linear-gradient(180deg,rgba(2,6,23,0.92),rgba(15,23,42,0.72))] px-3 pb-1.5 backdrop-blur-xl">
+      <div className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.68),rgba(15,23,42,0.42))] px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_14px_30px_rgba(2,6,23,0.2)]">
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex min-w-0 items-center gap-1.5">
             <Link
               to="/dashboard"
               aria-label={t("game.backToDashboard", language)}
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-sm font-semibold text-white/80 transition hover:bg-white/[0.08]"
+              className="inline-flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-[0.82rem] font-semibold text-white/80 transition hover:bg-white/[0.08]"
             >
               ←
             </Link>
-            <p className="truncate text-[0.86rem] font-semibold text-white">
+            <p className="truncate text-[0.82rem] font-semibold text-white">
               MTBlocks
             </p>
           </div>
           <div
             className={[
-              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-right transition",
+              "inline-flex items-center gap-1 rounded-full border px-2.25 py-0.75 text-right transition",
               scorePulse ? "animate-score-pop" : "",
               scorePulse
                 ? "border-cyan-200/60 bg-cyan-300 text-slate-950"
                 : "border-white/10 bg-white/[0.06] text-white",
             ].join(" ")}
           >
-            <span className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] opacity-65">
+            <span className="text-[0.58rem] font-semibold uppercase tracking-[0.14em] opacity-65">
               {t("game.pointsLabel", language)}
             </span>
-            <span className="text-[0.92rem] font-bold leading-none">
+            <span className="text-[0.86rem] font-bold leading-none">
               {score.toLocaleString()}
             </span>
           </div>
         </div>
 
-        <div className="mt-2.5">
-          <div className="flex items-center justify-between gap-2">
-            <p className="min-w-0 truncate text-[0.72rem] font-medium text-white/82">
+        <div className="mt-2">
+          <div className="flex items-center justify-between gap-1.5">
+            <p className="min-w-0 truncate text-[0.68rem] font-medium text-white/82">
               {nextGoalLabel}
             </p>
-            <span className="shrink-0 text-[0.66rem] font-semibold text-white/52">
+            <span className="shrink-0 text-[0.62rem] font-semibold text-white/52">
               {completedMaxMilestone ? nextMilestone.badge : progressCopy}
             </span>
           </div>
-          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="mt-1.25 h-1.5 overflow-hidden rounded-full bg-white/10">
             <div
               className={["h-full rounded-full transition-[width]", progressBarClass].join(
                 " "
@@ -115,7 +115,7 @@ export function GameHeader({
             />
           </div>
           {!completedMaxMilestone ? (
-            <p className="mt-1 truncate text-[0.64rem] text-white/42">
+            <p className="mt-0.75 truncate text-[0.6rem] text-white/42">
               {t(nextMilestone.labelKey, language)}
             </p>
           ) : null}
