@@ -190,9 +190,13 @@ export default function GamePage() {
   }
 
   async function startFreshRun() {
-    const session = await startGameSession();
     const fresh = buildFreshGameState();
-    setGameSessionId(session.session_id);
+    try {
+      const session = await startGameSession();
+      setGameSessionId(session.session_id);
+    } catch {
+      setGameSessionId(null);
+    }
     setBoard(fresh.board);
     setPieces(fresh.pieces);
     setSelectedPieceId(fresh.selectedPieceId);
@@ -206,11 +210,21 @@ export default function GamePage() {
   }
 
   async function handleRestart() {
+    let bankError = "";
+
     try {
       setSubmitting(true);
       setError("");
-      await bankCurrentRun();
+      try {
+        await bankCurrentRun();
+      } catch (err) {
+        bankError =
+          err instanceof Error ? err.message : "Failed to save previous run";
+      }
       await startFreshRun();
+      if (bankError) {
+        setError(bankError);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to restart game");
     } finally {
@@ -240,13 +254,22 @@ export default function GamePage() {
   }
 
   async function handleBankAndRestart() {
+    let bankError = "";
+
     try {
       setSubmitting(true);
       setError("");
-      await bankCurrentRun();
+      try {
+        await bankCurrentRun();
+      } catch (err) {
+        bankError = err instanceof Error ? err.message : "Failed to save run";
+      }
       await startFreshRun();
+      if (bankError) {
+        setError(bankError);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save run");
+      setError(err instanceof Error ? err.message : "Failed to start fresh run");
     } finally {
       setSubmitting(false);
     }
