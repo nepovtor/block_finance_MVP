@@ -223,8 +223,13 @@
   }
 
   .game-board {
-    --board-cell-size: clamp(1.95rem, 9vw, 2.9rem);
-    --board-gap: 0.25rem;
+    --board-size: 352px;
+    --board-cell-size: calc((var(--board-size) - (var(--board-gap) * 6)) / 7);
+    --board-gap: 4px;
+    width: var(--board-size);
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    grid-template-rows: repeat(7, minmax(0, var(--board-cell-size)));
     grid-template-columns: repeat(7, minmax(0, var(--board-cell-size)));
     gap: var(--board-gap);
   }

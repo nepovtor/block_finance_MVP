@@ -1,5 +1,12 @@
-import type { Ref } from "react";
-import type { Board } from "../../game/engine";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Ref,
+} from "react";
+import { BOARD_SIZE, type Board } from "../../game/engine";
 import { type Language, t } from "../../i18n/translations";
 
 type ClearedCellEffect = {
@@ -20,6 +27,10 @@ type GameBoardProps = {
   handleBoardClick: (row: number, col: number) => void;
 };
 
+const BOARD_GAP_PX = 4;
+const BOARD_MIN_SIZE_PX = 288;
+const BOARD_MAX_SIZE_PX = 352;
+
 export function GameBoard({
   board,
   boardRef,
@@ -30,15 +41,67 @@ export function GameBoard({
   language,
   handleBoardClick,
 }: GameBoardProps) {
+  const containerRef = useRef<HTMLElement | null>(null);
+  const [availableWidth, setAvailableWidth] = useState(BOARD_MAX_SIZE_PX);
+
+  useEffect(() => {
+    const element = containerRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    function updateWidth(width: number) {
+      setAvailableWidth(width);
+    }
+
+    updateWidth(element.clientWidth);
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const nextWidth = entries[0]?.contentRect.width;
+
+      if (nextWidth) {
+        updateWidth(nextWidth);
+      }
+    });
+
+    resizeObserver.observe(element);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  const boardSize = useMemo(() => {
+    return Math.max(
+      BOARD_MIN_SIZE_PX,
+      Math.min(availableWidth, BOARD_MAX_SIZE_PX)
+    );
+  }, [availableWidth]);
+
+  const cellSize = useMemo(() => {
+    const totalGaps = BOARD_GAP_PX * (BOARD_SIZE - 1);
+    return (boardSize - totalGaps) / BOARD_SIZE;
+  }, [boardSize]);
+
   return (
     <section
+      ref={containerRef}
       className={[
-        "animate-fade-up relative mx-auto w-full max-w-[22rem] rounded-[2rem] border border-white/10 bg-slate-950/55 p-3 shadow-[0_22px_80px_rgba(0,0,0,0.48)] transition",
+        "animate-fade-up relative mx-auto w-full rounded-[2rem] border border-white/10 bg-slate-950/55 p-3 shadow-[0_22px_80px_rgba(0,0,0,0.48)] transition",
         boardFlash ? "animate-board-flash ring-4 ring-emerald-300/20" : "",
         invalidMovePulse ? "animate-shake-soft" : "",
       ].join(" ")}
     >
-      <div ref={boardRef} className="game-board grid">
+      <div
+        ref={boardRef}
+        className="game-board mx-auto grid"
+        style={{
+          "--board-size": `${boardSize}px`,
+          "--board-cell-size": `${cellSize}px`,
+          "--board-gap": `${BOARD_GAP_PX}px`,
+        } as CSSProperties}
+      >
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
