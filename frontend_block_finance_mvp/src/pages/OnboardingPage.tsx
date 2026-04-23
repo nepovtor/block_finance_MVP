@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 
+import { t } from "../i18n/translations";
 import { useAppStore } from "../store/appStore";
 
 export default function OnboardingPage() {
   const nav = useNavigate();
-  const { demoProduct, setHasSeenValueIntro } = useAppStore();
+  const { demoProduct, setHasSeenValueIntro, language } = useAppStore();
 
   function handleStartDemo() {
     setHasSeenValueIntro(true);
@@ -22,24 +23,22 @@ export default function OnboardingPage() {
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-6">
               <div className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
-                Hackathon MVP Demo
+                {t("onboarding.badge", language)}
               </div>
 
               <div className="rounded-3xl border border-emerald-300/20 bg-emerald-400/10 p-4 text-sm leading-6 text-emerald-50">
-                Understand the product in under 8 seconds:
+                {t("onboarding.quickIntroLabel", language)}
                 <span className="ml-2 font-semibold text-white">
-                  pay with card -&gt; unlock a reward -&gt; play better instantly.
+                  {t("onboarding.quickIntroValue", language)}
                 </span>
               </div>
 
               <div className="space-y-4">
                 <h1 className="max-w-3xl text-3xl font-bold text-white sm:text-5xl lg:text-6xl">
-                  Turn everyday payments into game energy.
+                  {t("onboarding.title", language)}
                 </h1>
                 <p className="max-w-2xl text-balance text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-                  Block Finance makes banking feel rewarding for young users:
-                  make a payment, unlock a gameplay boost, and grow progress in
-                  one smooth loop.
+                  {t("onboarding.subtitle", language)}
                 </p>
               </div>
 
@@ -48,21 +47,21 @@ export default function OnboardingPage() {
                   onClick={handleStartDemo}
                   className="glow-button min-h-14 rounded-2xl bg-emerald-400 px-6 py-4 text-base font-semibold text-slate-950 shadow-lg shadow-emerald-500/20"
                 >
-                  Start 15-sec demo
+                  {t("onboarding.startDemo", language)}
                 </button>
                 <button
                   onClick={() => nav("/game")}
                   className="glow-button min-h-14 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-base font-medium text-slate-100"
                 >
-                  Jump into game
+                  {t("onboarding.jumpToGame", language)}
                 </button>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                  "1. Pay for coffee",
-                  "2. Unlock extra move",
-                  "3. Use it to extend your run",
+                  t("onboarding.step1", language),
+                  t("onboarding.step2", language),
+                  t("onboarding.step3", language),
                 ].map((step) => (
                   <div
                     key={step}
@@ -78,25 +77,29 @@ export default function OnboardingPage() {
               <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5 shadow-xl shadow-slate-950/30">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
-                    First quest
+                    {t("onboarding.firstQuest", language)}
                   </div>
                   <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.18em] text-slate-300">
-                    Dashboard starts here
+                    {t("onboarding.dashboardStartsHere", language)}
                   </div>
                 </div>
                 <div className="mt-5 grid gap-3">
                   {[
                     {
-                      title: "Trigger one banking action",
-                      copy: "Tap one payment CTA to prove the reward engine is live.",
+                      title: t("onboarding.quest1Title", language),
+                      copy: t("onboarding.quest1Copy", language),
                     },
                     {
-                      title: "Show progress beyond the reward",
-                      copy: `The dashboard already shows ${demoProduct.paymentsToday}/3 challenge progress and $${demoProduct.savingsGoalCurrent}/$${demoProduct.savingsGoalTarget} saved.`,
+                      title: t("onboarding.quest2Title", language),
+                      copy: t("onboarding.quest2Copy", language, {
+                        paymentsToday: demoProduct.paymentsToday,
+                        savingsCurrent: demoProduct.savingsGoalCurrent,
+                        savingsTarget: demoProduct.savingsGoalTarget,
+                      }),
                     },
                     {
-                      title: "Close with the playable proof",
-                      copy: "Open the puzzle and use the reward as a real gameplay advantage.",
+                      title: t("onboarding.quest3Title", language),
+                      copy: t("onboarding.quest3Copy", language),
                     },
                   ].map((item, index) => (
                     <div
@@ -104,7 +107,7 @@ export default function OnboardingPage() {
                       className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
                     >
                       <div className="text-xs uppercase tracking-[0.2em] text-emerald-200">
-                        Quest {index + 1}
+                        {t("onboarding.questLabel", language, { index: index + 1 })}
                       </div>
                       <div className="mt-2 text-lg font-semibold text-white">
                         {item.title}
@@ -119,21 +122,21 @@ export default function OnboardingPage() {
 
               <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5 shadow-xl shadow-slate-950/30">
                 <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
-                  Product loop
+                  {t("onboarding.productLoop", language)}
                 </div>
                 <div className="mt-5 space-y-3">
                   {[
                     {
-                      title: "Money becomes momentum",
-                      copy: "A simple payment instantly triggers reward logic.",
+                      title: t("onboarding.loop1Title", language),
+                      copy: t("onboarding.loop1Copy", language),
                     },
                     {
-                      title: "Action becomes reward",
-                      copy: "The user receives an extra move for the next session.",
+                      title: t("onboarding.loop2Title", language),
+                      copy: t("onboarding.loop2Copy", language),
                     },
                     {
-                      title: "Reward becomes progress",
-                      copy: "Gameplay drives score, XP, and retention-friendly momentum.",
+                      title: t("onboarding.loop3Title", language),
+                      copy: t("onboarding.loop3Copy", language),
                     },
                   ].map((item, index) => (
                     <div
@@ -141,7 +144,7 @@ export default function OnboardingPage() {
                       className="rounded-2xl border border-white/8 bg-white/[0.03] p-4"
                     >
                       <div className="text-xs uppercase tracking-[0.2em] text-emerald-200">
-                        Step {index + 1}
+                        {t("onboarding.loopStep", language, { index: index + 1 })}
                       </div>
                       <div className="mt-2 text-lg font-semibold text-white">
                         {item.title}
@@ -155,9 +158,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="rounded-3xl border border-amber-300/20 bg-amber-300/10 p-5 text-sm leading-6 text-amber-100">
-                This demo is optimized for a 30-60 second pitch: one payment,
-                one reward, one savings touch, one social hook, and one clear
-                retention story.
+                {t("onboarding.pitchNote", language)}
               </div>
             </div>
           </div>

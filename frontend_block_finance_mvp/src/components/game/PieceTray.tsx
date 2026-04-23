@@ -1,5 +1,6 @@
 import type { PointerEvent } from "react";
 import { getShapeBounds, type Piece } from "../../game/engine";
+import { type Language, t } from "../../i18n/translations";
 
 function getShapeGridClass(width: number) {
   switch (width) {
@@ -23,6 +24,7 @@ type PieceTrayProps = {
   loading: boolean;
   submitting: boolean;
   gameOver: boolean;
+  language: Language;
   handlePieceClick: (piece: Piece) => void;
   handlePiecePointerDown: (
     event: PointerEvent<HTMLButtonElement>,
@@ -42,6 +44,7 @@ export function PieceTray({
   loading,
   submitting,
   gameOver,
+  language,
   handlePieceClick,
   handlePiecePointerDown,
   handlePiecePointerMove,
@@ -64,7 +67,9 @@ export function PieceTray({
                   <button
                     key={piece.instanceId}
                     type="button"
-                    aria-label={`Select and drag ${piece.shape.name} shape`}
+                    aria-label={t("game.selectAndDragShape", language, {
+                      shape: piece.shape.name,
+                    })}
                     onClick={() => handlePieceClick(piece)}
                     onPointerDown={(event) => handlePiecePointerDown(event, piece)}
                     onPointerMove={handlePiecePointerMove}
@@ -122,7 +127,7 @@ export function PieceTray({
                 disabled={loading || submitting}
                 className="flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
               >
-                Restart
+                {t("game.restart", language)}
               </button>
               <button
                 type="button"
@@ -130,7 +135,9 @@ export function PieceTray({
                 disabled={loading || submitting}
                 className="flex-1 rounded-2xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 disabled:opacity-50"
               >
-                {gameOver ? "Save + play again" : "Bank score"}
+                {gameOver
+                  ? t("game.saveAndPlayAgainShort", language)
+                  : t("game.bankScore", language)}
               </button>
             </div>
           </div>

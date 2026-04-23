@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
+import { type Language, t } from "../../i18n/translations";
 
 const ACHIEVEMENT_MILESTONES = [
-  { score: 40, label: "First stack", icon: "◧" },
-  { score: 90, label: "Clean lane", icon: "△" },
-  { score: 160, label: "Hot streak", icon: "✦" },
-  { score: 280, label: "MTB mode", icon: "MTB" },
+  { score: 40, labelKey: "game.firstStack", icon: "◧" },
+  { score: 90, labelKey: "game.cleanLane", icon: "△" },
+  { score: 160, labelKey: "game.hotStreak", icon: "✦" },
+  { score: 280, labelKey: "game.mtbMode", icon: "MTB" },
 ] as const;
 
 type GameHeaderProps = {
@@ -13,6 +14,7 @@ type GameHeaderProps = {
   rewardAvailable: boolean;
   rewardValue: number | undefined;
   statusText: string;
+  language: Language;
 };
 
 export function GameHeader({
@@ -21,6 +23,7 @@ export function GameHeader({
   rewardAvailable,
   rewardValue,
   statusText,
+  language,
 }: GameHeaderProps) {
   const nextMilestone =
     ACHIEVEMENT_MILESTONES.find((milestone) => score < milestone.score) ??
@@ -42,8 +45,10 @@ export function GameHeader({
         );
   const progressLabel =
     score >= nextMilestone.score
-      ? currentAchievement.label
-      : `${nextMilestone.icon} ${Math.max(nextMilestone.score - score, 0)} left`;
+      ? t(currentAchievement.labelKey, language)
+      : `${nextMilestone.icon} ${t("game.left", language, {
+          value: Math.max(nextMilestone.score - score, 0),
+        })}`;
 
   return (
     <header className="safe-top-header animate-rise-in sticky top-0 z-20 -mx-3 mb-2 border-b border-white/8 bg-slate-950/50 px-3 pb-1 backdrop-blur">
@@ -52,7 +57,7 @@ export function GameHeader({
           to="/dashboard"
           className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-white/80"
         >
-          ← Dashboard
+          {t("game.backToDashboard", language)}
         </Link>
         <div className="flex items-center gap-1.5">
           <div
@@ -64,7 +69,7 @@ export function GameHeader({
                 : "bg-white/10 text-white/90",
             ].join(" ")}
           >
-            Score {score}
+            {t("game.score", language, { value: score })}
           </div>
           <div
             className={[
@@ -75,7 +80,9 @@ export function GameHeader({
                 : "bg-white/10 text-white/60",
             ].join(" ")}
           >
-            {rewardAvailable ? `Reward ×${rewardValue}` : "No reward"}
+            {rewardAvailable
+              ? t("game.rewardAvailable", language, { value: rewardValue ?? 0 })
+              : t("game.noReward", language)}
           </div>
         </div>
       </div>

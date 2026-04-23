@@ -1,5 +1,6 @@
 import type { Ref } from "react";
 import type { Board } from "../../game/engine";
+import { type Language, t } from "../../i18n/translations";
 
 type ClearedCellEffect = {
   row: number;
@@ -15,6 +16,7 @@ type GameBoardProps = {
   invalidMovePulse: boolean;
   previewCellMap: Map<string, boolean>;
   clearedCellMap: Map<string, ClearedCellEffect>;
+  language: Language;
   handleBoardClick: (row: number, col: number) => void;
 };
 
@@ -25,6 +27,7 @@ export function GameBoard({
   invalidMovePulse,
   previewCellMap,
   clearedCellMap,
+  language,
   handleBoardClick,
 }: GameBoardProps) {
   return (
@@ -52,9 +55,10 @@ export function GameBoard({
               <button
                 key={`${rowIndex}-${colIndex}`}
                 type="button"
-                aria-label={`Place selected shape at row ${
-                  rowIndex + 1
-                }, column ${colIndex + 1}`}
+                aria-label={t("game.placeSelectedShapeAt", language, {
+                  row: rowIndex + 1,
+                  col: colIndex + 1,
+                })}
                 data-board-cell
                 data-row={rowIndex}
                 data-col={colIndex}

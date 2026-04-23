@@ -27,6 +27,7 @@ import {
   hasAnyValidMove,
   placeShape,
 } from "../game/engine";
+import { t } from "../i18n/translations";
 import { useAppStore } from "../store/appStore";
 
 function getPreviewState(
@@ -58,8 +59,15 @@ function buildFreshGameState() {
 }
 
 export default function GamePage() {
-  const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
-    useAppStore();
+  const {
+    reward,
+    addXP,
+    gameSessionId,
+    setGameSessionId,
+    setReward,
+    setUser,
+    language,
+  } = useAppStore();
 
   const [board, setBoard] = useState<Board>(() => createBoard());
   const [pieces, setPieces] = useState<Piece[]>(() => createPieceBatch());
@@ -72,9 +80,7 @@ export default function GamePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [gameOver, setGameOver] = useState(false);
-  const [statusText, setStatusText] = useState(
-    "Pick a shape and tap the board."
-  );
+  const [statusText, setStatusText] = useState(() => t("game.pickShape", language));
   const [scorePulse, setScorePulse] = useState(false);
   const [boardFlash, setBoardFlash] = useState(false);
   const [invalidMovePulse, setInvalidMovePulse] = useState(false);
@@ -137,10 +143,10 @@ export default function GamePage() {
         setComboStreak(0);
         setGameOver(false);
         setError("");
-        setStatusText("Fresh run started. Pick a shape and tap the board.");
+        setStatusText(t("game.freshRunStarted", language));
       } catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : "Failed to start game");
+          setError(err instanceof Error ? err.message : t("error.failedToStartGame", language));
         }
       } finally {
         if (active) setLoading(false);
@@ -151,14 +157,14 @@ export default function GamePage() {
     return () => {
       active = false;
     };
-  }, [setGameSessionId, setReward, setUser]);
+  }, [language, setGameSessionId, setReward, setUser]);
 
   useEffect(() => {
     if (!loading && !hasAnyValidMove(board, pieces)) {
       setGameOver(true);
-      setStatusText("No valid placements left. Use reward or bank the run.");
+      setStatusText(t("game.noValidPlacements", language));
     }
-  }, [board, loading, pieces]);
+  }, [board, language, loading, pieces]);
 
   useEffect(() => {
     if (!scorePulse) return;
@@ -209,7 +215,7 @@ export default function GamePage() {
     setComboStreak(0);
     setGameOver(false);
     setError("");
-    setStatusText("Fresh run started. Pick a shape and tap the board.");
+    setStatusText(t("game.freshRunStarted", language));
   }
 
   async function handleRestart() {
@@ -222,14 +228,16 @@ export default function GamePage() {
         await bankCurrentRun();
       } catch (err) {
         bankError =
-          err instanceof Error ? err.message : "Failed to save previous run";
+          err instanceof Error
+            ? err.message
+            : t("error.failedToSavePreviousRun", language);
       }
       await startFreshRun();
       if (bankError) {
         setError(bankError);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to restart game");
+      setError(err instanceof Error ? err.message : t("error.failedToRestartGame", language));
     } finally {
       setSubmitting(false);
     }
@@ -249,9 +257,9 @@ export default function GamePage() {
       setGameOver(false);
       setComboStreak(0);
       setExtraMovesUsed((current) => current + 1);
-      setStatusText("Extra move used. New pieces dealt.");
+      setStatusText(t("game.extraMoveUsed", language));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to use extra move");
+      setError(err instanceof Error ? err.message : t("error.failedToUseExtraMove", language));
     } finally {
       setSubmitting(false);
     }
@@ -266,14 +274,14 @@ export default function GamePage() {
       try {
         await bankCurrentRun();
       } catch (err) {
-        bankError = err instanceof Error ? err.message : "Failed to save run";
+        bankError = err instanceof Error ? err.message : t("error.failedToSaveRun", language);
       }
       await startFreshRun();
       if (bankError) {
         setError(bankError);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start fresh run");
+      setError(err instanceof Error ? err.message : t("error.failedToStartFreshRun", language));
     } finally {
       setSubmitting(false);
     }
@@ -281,13 +289,13 @@ export default function GamePage() {
 
   function placePieceOnBoard(piece: Piece | null, row: number, col: number) {
     if (!piece) {
-      setError("Select a piece first");
+      setError(t("game.selectPieceFirst", language));
       setInvalidMovePulse(true);
       return false;
     }
 
     if (!canPlaceShape(board, piece.shape, row, col)) {
-      setError("That piece does not fit there");
+      setError(t("game.pieceDoesNotFit", language));
       setInvalidMovePulse(true);
       return false;
     }
@@ -318,11 +326,24 @@ export default function GamePage() {
       setBoardFlash(true);
       setStatusText(
         comboBonus > 0
-          ? `Combo x${nextComboStreak}: +${comboBonus} bonus. Clear ${move.clearedRows.length} row(s), ${move.clearedCols.length} column(s).`
-          : `Clean clear: ${move.clearedRows.length} row(s), ${move.clearedCols.length} column(s).`
+          ? t("game.comboStatus", language, {
+              combo: nextComboStreak,
+              bonus: comboBonus,
+              rows: move.clearedRows.length,
+              cols: move.clearedCols.length,
+            })
+          : t("game.cleanClearStatus", language, {
+              rows: move.clearedRows.length,
+              cols: move.clearedCols.length,
+            })
       );
     } else {
-      setStatusText(`Placed ${piece.shape.name} for +${move.scoreGained}.`);
+      setStatusText(
+        t("game.placedShape", language, {
+          shape: piece.shape.name,
+          score: move.scoreGained,
+        })
+      );
     }
 
     return true;
@@ -379,12 +400,19 @@ export default function GamePage() {
           rewardAvailable={rewardAvailable}
           rewardValue={reward?.value}
           statusText={statusText}
+          language={language}
         />
 
         <main className="flex flex-1 flex-col">
           <div className="mb-3 flex items-center justify-between px-1 text-[11px] uppercase tracking-[0.22em] text-white/45">
-            <span>Moves {movesUsed}</span>
-            <span>{loading ? "Starting" : `Session ${gameSessionId ?? "offline"}`}</span>
+            <span>{t("game.movesCount", language, { value: movesUsed })}</span>
+            <span>
+              {loading
+                ? t("game.starting", language)
+                : t("game.session", language, {
+                    value: gameSessionId ?? t("game.offline", language),
+                  })}
+            </span>
           </div>
 
           <GameBoard
@@ -394,6 +422,7 @@ export default function GamePage() {
             invalidMovePulse={invalidMovePulse}
             previewCellMap={previewCellMap}
             clearedCellMap={clearedCellMap}
+            language={language}
             handleBoardClick={handleBoardClick}
           />
         </main>
@@ -406,6 +435,7 @@ export default function GamePage() {
             loading={loading}
             submitting={submitting}
             gameOver={gameOver}
+            language={language}
             handlePieceClick={handlePieceClick}
             handlePiecePointerDown={handlePiecePointerDown}
             handlePiecePointerMove={handlePiecePointerMove}
@@ -432,6 +462,7 @@ export default function GamePage() {
             extraMovesUsed={extraMovesUsed}
             rewardAvailable={rewardAvailable}
             submitting={submitting}
+            language={language}
             onRestart={() => void handleRestart()}
             onUseExtraMove={() => void handleUseExtraMove()}
             onBankAndRestart={() => void handleBankAndRestart()}

@@ -26,7 +26,10 @@ export default function LanguageSelectionPage() {
                 {t('selectLanguage', language)}
               </h1>
               <p className="text-slate-300">
-                Choose your preferred language to continue
+                {t('selectLanguageDescription', language)}
+              </p>
+              <p className="text-sm text-slate-400">
+                {t('language.heroTitle', language)}
               </p>
             </div>
 
