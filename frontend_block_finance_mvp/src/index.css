@@ -184,8 +184,25 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  .safe-top-header {
+    padding-top: max(env(safe-area-inset-top), 0.75rem);
+  }
+
+  .safe-bottom-tray {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+
+  .safe-bottom-modal {
+    margin-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  }
+
   .safe-bottom-offset {
     bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .drag-ghost {
+    left: var(--drag-x, 0px);
+    top: var(--drag-y, 0px);
   }
 
   .bottom-action-zone {

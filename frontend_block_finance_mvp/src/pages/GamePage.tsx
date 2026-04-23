@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   finishGameSession,
@@ -20,6 +20,12 @@ import {
 import { useAppStore } from "../store/appStore";
 
 type HoveredCell = { row: number; col: number } | null;
+type DragState = {
+  pieceId: string;
+  clientX: number;
+  clientY: number;
+  moved: boolean;
+};
 
 function getPreviewState(
   board: Board,
@@ -49,6 +55,40 @@ function buildFreshGameState() {
   };
 }
 
+function getBoardCellFromPoint(clientX: number, clientY: number): HoveredCell {
+  const element = document
+    .elementFromPoint(clientX, clientY)
+    ?.closest<HTMLElement>("[data-board-cell]");
+
+  if (!element) {
+    return null;
+  }
+
+  const row = Number(element.dataset.row);
+  const col = Number(element.dataset.col);
+
+  if (!Number.isInteger(row) || !Number.isInteger(col)) {
+    return null;
+  }
+
+  return { row, col };
+}
+
+function getShapeGridClass(width: number) {
+  switch (width) {
+    case 1:
+      return "grid-cols-1";
+    case 2:
+      return "grid-cols-2";
+    case 3:
+      return "grid-cols-3";
+    case 4:
+      return "grid-cols-4";
+    default:
+      return "grid-cols-5";
+  }
+}
+
 export default function GamePage() {
   const { reward, addXP, gameSessionId, setGameSessionId, setReward, setUser } =
     useAppStore();
@@ -70,17 +110,21 @@ export default function GamePage() {
   const [scorePulse, setScorePulse] = useState(false);
   const [boardFlash, setBoardFlash] = useState(false);
   const [invalidMovePulse, setInvalidMovePulse] = useState(false);
+  const [dragState, setDragState] = useState<DragState | null>(null);
+  const suppressNextPieceClick = useRef(false);
+  const dragGhostRef = useRef<HTMLDivElement | null>(null);
 
   const selectedPiece =
     pieces.find((piece) => piece.instanceId === selectedPieceId) ?? null;
+  const draggedPiece =
+    pieces.find((piece) => piece.instanceId === dragState?.pieceId) ?? null;
 
   const preview = useMemo(
-    () => getPreviewState(board, selectedPiece, hoveredCell),
-    [board, hoveredCell, selectedPiece]
+    () => getPreviewState(board, draggedPiece ?? selectedPiece, hoveredCell),
+    [board, draggedPiece, hoveredCell, selectedPiece]
   );
 
   const rewardAvailable = reward?.type === "extra_move" && reward.value > 0;
-  const boardSize = board[0]?.length ?? 8;
 
   useEffect(() => {
     let active = true;
@@ -145,6 +189,16 @@ export default function GamePage() {
     const timeoutId = window.setTimeout(() => setInvalidMovePulse(false), 220);
     return () => window.clearTimeout(timeoutId);
   }, [invalidMovePulse]);
+
+  useEffect(() => {
+    if (!dragState || !dragGhostRef.current) return;
+
+    dragGhostRef.current.style.setProperty("--drag-x", `${dragState.clientX}px`);
+    dragGhostRef.current.style.setProperty(
+      "--drag-y",
+      `${dragState.clientY - 44}px`
+    );
+  }, [dragState]);
 
   async function bankCurrentRun() {
     if (gameSessionId === null) return;
@@ -231,23 +285,23 @@ export default function GamePage() {
     setHoveredCell(null);
   }
 
-  function handleBoardClick(row: number, col: number) {
-    if (!selectedPiece) {
+  function placePieceOnBoard(piece: Piece | null, row: number, col: number) {
+    if (!piece) {
       setError("Select a piece first");
       setInvalidMovePulse(true);
-      return;
+      return false;
     }
 
-    if (!canPlaceShape(board, selectedPiece.shape, row, col)) {
+    if (!canPlaceShape(board, piece.shape, row, col)) {
       setError("That piece does not fit there");
       setInvalidMovePulse(true);
-      return;
+      return false;
     }
 
     setError("");
-    const move = placeShape(board, selectedPiece.shape, row, col);
+    const move = placeShape(board, piece.shape, row, col);
     const remainingPieces = pieces.filter(
-      (piece) => piece.instanceId !== selectedPiece.instanceId
+      (currentPiece) => currentPiece.instanceId !== piece.instanceId
     );
     const nextPieces =
       remainingPieces.length === 0 ? createPieceBatch() : remainingPieces;
@@ -266,21 +320,87 @@ export default function GamePage() {
         `Clean clear: ${move.clearedRows.length} row(s), ${move.clearedCols.length} column(s).`
       );
     } else {
-      setStatusText(`Placed ${selectedPiece.shape.name} for +${move.scoreGained}.`);
+      setStatusText(`Placed ${piece.shape.name} for +${move.scoreGained}.`);
     }
+
+    return true;
+  }
+
+  function handleBoardClick(row: number, col: number) {
+    placePieceOnBoard(selectedPiece, row, col);
+  }
+
+  function handlePiecePointerDown(
+    event: PointerEvent<HTMLButtonElement>,
+    piece: Piece
+  ) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectedPieceId(piece.instanceId);
+    setDragState({
+      pieceId: piece.instanceId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      moved: false,
+    });
+    setHoveredCell(getBoardCellFromPoint(event.clientX, event.clientY));
+  }
+
+  function handlePiecePointerMove(event: PointerEvent<HTMLButtonElement>) {
+    setDragState((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const moved =
+        current.moved ||
+        Math.abs(event.clientX - current.clientX) > 3 ||
+        Math.abs(event.clientY - current.clientY) > 3;
+
+      return {
+        ...current,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        moved,
+      };
+    });
+
+    setHoveredCell(getBoardCellFromPoint(event.clientX, event.clientY));
+  }
+
+  function handlePiecePointerUp(event: PointerEvent<HTMLButtonElement>) {
+    const cell = getBoardCellFromPoint(event.clientX, event.clientY);
+
+    if (dragState?.moved) {
+      suppressNextPieceClick.current = true;
+    }
+
+    if (cell) {
+      const placed = placePieceOnBoard(draggedPiece, cell.row, cell.col);
+      suppressNextPieceClick.current = suppressNextPieceClick.current || placed;
+    }
+
+    setDragState(null);
+    setHoveredCell(null);
+  }
+
+  function handlePieceClick(piece: Piece) {
+    if (suppressNextPieceClick.current) {
+      suppressNextPieceClick.current = false;
+      return;
+    }
+
+    setSelectedPieceId(piece.instanceId);
   }
 
   const previewCellMap = new Map(
     preview.cells.map((cell) => [`${cell.row}-${cell.col}`, preview.valid])
   );
+  const draggedBounds = draggedPiece ? getShapeBounds(draggedPiece.shape) : null;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#1e3359_0%,_#0d1528_46%,_#050a14_100%)] text-white">
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-3 pb-40 pt-3">
-        <header
-          className="sticky top-0 z-20 -mx-3 mb-3 border-b border-white/10 bg-slate-950/70 px-3 pb-2 backdrop-blur"
-          style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}
-        >
+        <header className="safe-top-header sticky top-0 z-20 -mx-3 mb-3 border-b border-white/10 bg-slate-950/70 px-3 pb-2 backdrop-blur">
           <div className="flex items-center justify-between gap-2">
             <Link
               to="/dashboard"
@@ -337,16 +457,11 @@ export default function GamePage() {
               invalidMovePulse ? "animate-pulse" : "",
             ].join(" ")}
           >
-            <div
-              className="grid gap-1.5"
-              style={{
-                gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
-              }}
-            >
+            <div className="grid grid-cols-8 gap-1.5">
               {board.map((row, rowIndex) =>
                 row.map((cell, colIndex) => {
                   const previewState = previewCellMap.get(`${rowIndex}-${colIndex}`);
-                  const occupied = cell === 1;
+                  const occupied = cell !== null;
                   const previewClass =
                     previewState === undefined
                       ? ""
@@ -358,6 +473,12 @@ export default function GamePage() {
                     <button
                       key={`${rowIndex}-${colIndex}`}
                       type="button"
+                      aria-label={`Place selected shape at row ${
+                        rowIndex + 1
+                      }, column ${colIndex + 1}`}
+                      data-board-cell
+                      data-row={rowIndex}
+                      data-col={colIndex}
                       onPointerEnter={() => handleBoardPreview(rowIndex, colIndex)}
                       onPointerMove={() => handleBoardPreview(rowIndex, colIndex)}
                       onPointerLeave={handleBoardLeave}
@@ -365,7 +486,7 @@ export default function GamePage() {
                       className={[
                         "aspect-square rounded-xl border transition",
                         occupied
-                          ? "border-white/10 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-400 shadow-[inset_0_1px_8px_rgba(255,255,255,0.65),0_4px_10px_rgba(0,0,0,0.24)]"
+                          ? `${cell.color} border-white/10 shadow-[inset_0_1px_8px_rgba(255,255,255,0.35),0_4px_10px_rgba(0,0,0,0.24)]`
                           : "border-white/5 bg-[#14203b] hover:bg-[#1a2948]",
                         previewClass,
                       ].join(" ")}
@@ -378,10 +499,7 @@ export default function GamePage() {
         </main>
 
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center">
-          <div
-            className="pointer-events-auto w-full max-w-md"
-            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
-          >
+          <div className="safe-bottom-tray pointer-events-auto w-full max-w-md">
             <div className="border-t border-white/10 bg-slate-950/92 shadow-[0_-18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
               <div className="flex justify-center px-3 py-4">
                 <div className="grid grid-cols-3 gap-3">
@@ -393,17 +511,29 @@ export default function GamePage() {
                         <button
                           key={piece.instanceId}
                           type="button"
-                          onClick={() => setSelectedPieceId(piece.instanceId)}
+                          aria-label={`Select and drag ${piece.shape.name} shape`}
+                          onClick={() => handlePieceClick(piece)}
+                          onPointerDown={(event) =>
+                            handlePiecePointerDown(event, piece)
+                          }
+                          onPointerMove={handlePiecePointerMove}
+                          onPointerUp={handlePiecePointerUp}
+                          onPointerCancel={() => {
+                            setDragState(null);
+                            setHoveredCell(null);
+                          }}
                           className={[
-                            "flex flex-col items-center justify-center p-2 transition",
-                            selected ? "ring-2 ring-cyan-300/60 rounded-lg" : "",
+                            "touch-none select-none rounded-xl p-1.5 transition active:scale-95",
+                            selected ? "scale-105" : "",
+                            dragState?.pieceId === piece.instanceId
+                              ? "opacity-35"
+                              : "",
                           ].join(" ")}
                         >
                           <div
-                            className="grid gap-0.5"
-                            style={{
-                              gridTemplateColumns: `repeat(${bounds.width}, minmax(0, 1fr))`,
-                            }}
+                            className={["grid gap-1", getShapeGridClass(bounds.width)].join(
+                              " "
+                            )}
                           >
                             {Array.from({ length: bounds.height * bounds.width }).map(
                               (_, cellIndex) => {
@@ -417,10 +547,12 @@ export default function GamePage() {
                                   <div
                                     key={`${piece.instanceId}-${cellIndex}`}
                                     className={[
-                                      "aspect-square rounded-sm",
+                                      "h-5 w-5 rounded-md sm:h-6 sm:w-6",
                                       active
-                                        ? "bg-gradient-to-br from-cyan-200 via-cyan-300 to-blue-400 shadow-[inset_0_1px_6px_rgba(255,255,255,0.7)]"
-                                        : "bg-slate-800 border border-slate-700",
+                                        ? `${piece.shape.color} ${
+                                            selected ? "brightness-110" : ""
+                                          } shadow-[inset_0_1px_5px_rgba(255,255,255,0.45),0_3px_8px_rgba(0,0,0,0.28)]`
+                                        : "opacity-0",
                                     ].join(" ")}
                                   />
                                 );
@@ -463,12 +595,45 @@ export default function GamePage() {
           </div>
         </div>
 
+        {dragState && draggedPiece && draggedBounds ? (
+          <div
+            ref={dragGhostRef}
+            className="drag-ghost pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 opacity-85"
+          >
+            <div
+              className={[
+                "grid gap-1",
+                getShapeGridClass(draggedBounds.width),
+              ].join(" ")}
+            >
+              {Array.from({
+                length: draggedBounds.height * draggedBounds.width,
+              }).map((_, cellIndex) => {
+                const cellRow = Math.floor(cellIndex / draggedBounds.width);
+                const cellCol = cellIndex % draggedBounds.width;
+                const active = draggedPiece.shape.cells.some(
+                  (cell) => cell.row === cellRow && cell.col === cellCol
+                );
+
+                return (
+                  <div
+                    key={`${draggedPiece.instanceId}-drag-${cellIndex}`}
+                    className={[
+                      "h-7 w-7 rounded-lg",
+                      active
+                        ? `${draggedPiece.shape.color} shadow-[inset_0_1px_5px_rgba(255,255,255,0.45),0_4px_10px_rgba(0,0,0,0.28)]`
+                        : "opacity-0",
+                    ].join(" ")}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
         {gameOver ? (
           <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-950/70 px-3 backdrop-blur-sm sm:items-center">
-            <div
-              className="mb-3 w-full max-w-sm rounded-[2rem] border border-white/10 bg-slate-950/95 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)]"
-              style={{ marginBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
-            >
+            <div className="safe-bottom-modal mb-3 w-full max-w-sm rounded-[2rem] border border-white/10 bg-slate-950/95 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
               <p className="text-[10px] uppercase tracking-[0.24em] text-amber-200/70">
                 Run finished
               </p>
