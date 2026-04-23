@@ -8,25 +8,37 @@ export type ShapeDefinition = {
   name: string;
   color: string;
   accentLabel: string;
-  accentPattern: "coin" | "bill" | "vault" | "card" | "chart" | "bank";
+  accentPattern:
+    | "coin"
+    | "chip"
+    | "card"
+    | "bank"
+    | "vault"
+    | "token"
+    | "terminal"
+    | "money"
+    | "moby"
+    | "dollar"
+    | "gateway"
+    | "ledger";
   cells: ShapeCell[];
 };
 
 export const SHAPES: ShapeDefinition[] = [
   {
     id: "single",
-    name: "Single",
-    color: "bg-emerald-400",
-    accentLabel: "APR",
+    name: "Reward Token",
+    color: "bg-amber-400",
+    accentLabel: "TOKEN",
     accentPattern: "coin",
     cells: [{ row: 0, col: 0 }],
   },
   {
     id: "line-2-h",
-    name: "Line 2",
-    color: "bg-cyan-400",
-    accentLabel: "FX",
-    accentPattern: "chart",
+    name: "Card Chip",
+    color: "bg-emerald-400",
+    accentLabel: "CHIP",
+    accentPattern: "chip",
     cells: [
       { row: 0, col: 0 },
       { row: 0, col: 1 },
@@ -34,9 +46,9 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "line-3-h",
-    name: "Line 3",
+    name: "Bank Card",
     color: "bg-sky-400",
-    accentLabel: "PAY",
+    accentLabel: "CARD",
     accentPattern: "card",
     cells: [
       { row: 0, col: 0 },
@@ -46,8 +58,8 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "line-4-h",
-    name: "Line 4",
-    color: "bg-indigo-400",
+    name: "Bank Building",
+    color: "bg-blue-500",
     accentLabel: "BANK",
     accentPattern: "bank",
     cells: [
@@ -59,8 +71,8 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "line-5-v",
-    name: "Line 5",
-    color: "bg-violet-400",
+    name: "Vault Tower",
+    color: "bg-slate-400",
     accentLabel: "SAFE",
     accentPattern: "vault",
     cells: [
@@ -73,10 +85,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "square-2",
-    name: "Square",
-    color: "bg-amber-400",
-    accentLabel: "USD",
-    accentPattern: "bill",
+    name: "Coin Stack",
+    color: "bg-yellow-400",
+    accentLabel: "STACK",
+    accentPattern: "token",
     cells: [
       { row: 0, col: 0 },
       { row: 0, col: 1 },
@@ -86,10 +98,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "l-3",
-    name: "L 3",
-    color: "bg-orange-400",
-    accentLabel: "ROI",
-    accentPattern: "chart",
+    name: "Terminal",
+    color: "bg-teal-400",
+    accentLabel: "TAP",
+    accentPattern: "terminal",
     cells: [
       { row: 0, col: 0 },
       { row: 1, col: 0 },
@@ -98,10 +110,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "l-4",
-    name: "L 4",
-    color: "bg-rose-400",
-    accentLabel: "LOAN",
-    accentPattern: "bill",
+    name: "Cash Bundle",
+    color: "bg-emerald-500",
+    accentLabel: "CASH",
+    accentPattern: "money",
     cells: [
       { row: 0, col: 0 },
       { row: 1, col: 0 },
@@ -111,10 +123,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "j-4",
-    name: "J 4",
-    color: "bg-pink-400",
-    accentLabel: "CARD",
-    accentPattern: "card",
+    name: "Moby Emblem",
+    color: "bg-cyan-400",
+    accentLabel: "MOBY",
+    accentPattern: "moby",
     cells: [
       { row: 0, col: 1 },
       { row: 1, col: 1 },
@@ -124,10 +136,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "t-4",
-    name: "T 4",
-    color: "bg-fuchsia-400",
-    accentLabel: "COIN",
-    accentPattern: "coin",
+    name: "Dollar Totem",
+    color: "bg-lime-400",
+    accentLabel: "FLOW",
+    accentPattern: "dollar",
     cells: [
       { row: 0, col: 0 },
       { row: 0, col: 1 },
@@ -137,10 +149,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "zig-4",
-    name: "Zig",
-    color: "bg-lime-400",
-    accentLabel: "LEDG",
-    accentPattern: "bank",
+    name: "Gateway Rail",
+    color: "bg-indigo-400",
+    accentLabel: "GATE",
+    accentPattern: "gateway",
     cells: [
       { row: 0, col: 0 },
       { row: 0, col: 1 },
@@ -150,10 +162,10 @@ export const SHAPES: ShapeDefinition[] = [
   },
   {
     id: "step-4",
-    name: "Step",
-    color: "bg-teal-400",
-    accentLabel: "CASH",
-    accentPattern: "vault",
+    name: "Ledger Block",
+    color: "bg-amber-300",
+    accentLabel: "LEDGER",
+    accentPattern: "ledger",
     cells: [
       { row: 0, col: 1 },
       { row: 0, col: 2 },

@@ -6,6 +6,7 @@ import {
   createPieceCellLookup,
   getPieceCellStyle,
 } from "./pieceContour";
+import { PieceThemeDecor } from "./PieceThemeDecor";
 
 type PieceTrayProps = {
   pieces: Piece[];
@@ -106,7 +107,14 @@ export function PieceTray({
                                     ? `piece-cell-connected ${piece.shape.color}`
                                     : "opacity-0",
                                 ].join(" ")}
-                              />
+                              >
+                                {active ? (
+                                  <PieceThemeDecor
+                                    pattern={piece.shape.accentPattern}
+                                    compact
+                                  />
+                                ) : null}
+                              </div>
                             );
                           }
                         )}

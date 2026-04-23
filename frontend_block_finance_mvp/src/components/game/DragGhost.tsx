@@ -9,6 +9,7 @@ import {
   createPieceCellLookup,
   getPieceCellStyle,
 } from "./pieceContour";
+import { PieceThemeDecor } from "./PieceThemeDecor";
 
 type DragGhostProps = {
   piece: Piece;
@@ -63,7 +64,11 @@ export function DragGhost({
                     : "opacity-0",
                 ].join(" ")}
                 style={cellStyle}
-              />
+              >
+                {active ? (
+                  <PieceThemeDecor pattern={piece.shape.accentPattern} compact />
+                ) : null}
+              </div>
             );
           })}
         </div>

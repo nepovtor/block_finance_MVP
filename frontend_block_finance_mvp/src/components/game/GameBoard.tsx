@@ -8,6 +8,7 @@ import {
 } from "react";
 import { BOARD_SIZE, type Board } from "../../game/engine";
 import { type Language, t } from "../../i18n/translations";
+import { PieceThemeDecor } from "./PieceThemeDecor";
 
 type ClearedCellEffect = {
   row: number;
@@ -134,6 +135,9 @@ export function GameBoard({
                   previewClass,
                 ].join(" ")}
               >
+                {occupied ? (
+                  <PieceThemeDecor pattern={cell.accentPattern} />
+                ) : null}
                 {clearedEffect ? (
                   <span
                     className={[
