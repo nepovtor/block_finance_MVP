@@ -73,41 +73,44 @@ export function PieceTray({
                     ].join(" ")}
                   >
                     <div
-                      className={getPieceGridClass(bounds.width)}
-                      style={getPieceGridStyle()}
+                      className={[
+                        "piece-cluster-3d piece-cluster-tray inline-grid",
+                        selected ? "brightness-110" : "",
+                      ].join(" ")}
                     >
-                      {Array.from({ length: bounds.height * bounds.width }).map(
-                        (_, cellIndex) => {
-                          const cellRow = Math.floor(cellIndex / bounds.width);
-                          const cellCol = cellIndex % bounds.width;
-                          const active = piece.shape.cells.some(
-                            (cell) => cell.row === cellRow && cell.col === cellCol
-                          );
-                          const cellStyle = active
-                            ? getPieceCellStyle(cellLookup, cellRow, cellCol, 8)
-                            : undefined;
+                      <div
+                        className={getPieceGridClass(bounds.width)}
+                        style={getPieceGridStyle()}
+                      >
+                        {Array.from({ length: bounds.height * bounds.width }).map(
+                          (_, cellIndex) => {
+                            const cellRow = Math.floor(cellIndex / bounds.width);
+                            const cellCol = cellIndex % bounds.width;
+                            const active = piece.shape.cells.some(
+                              (cell) => cell.row === cellRow && cell.col === cellCol
+                            );
+                            const cellStyle = active
+                              ? getPieceCellStyle(cellLookup, cellRow, cellCol, 8)
+                              : undefined;
 
-                          return (
-                            <div
-                              key={`${piece.instanceId}-${cellIndex}`}
-                              data-piece-cell={active ? true : undefined}
-                              data-piece-row={active ? cellRow : undefined}
-                              data-piece-col={active ? cellCol : undefined}
-                              style={cellStyle}
-                              className={[
-                                "h-5 w-5 sm:h-6 sm:w-6",
-                                active
-                                  ? `piece-cell-3d piece-cell-tray ${piece.shape.color} ${
-                                      selected ? "brightness-110" : ""
-                                    }`
-                                  : "opacity-0",
-                              ].join(" ")}
-                            >
-                              {active ? <span className="piece-cell-surface" /> : null}
-                            </div>
-                          );
-                        }
-                      )}
+                            return (
+                              <div
+                                key={`${piece.instanceId}-${cellIndex}`}
+                                data-piece-cell={active ? true : undefined}
+                                data-piece-row={active ? cellRow : undefined}
+                                data-piece-col={active ? cellCol : undefined}
+                                style={cellStyle}
+                                className={[
+                                  "h-5 w-5 sm:h-6 sm:w-6",
+                                  active
+                                    ? `piece-cell-connected ${piece.shape.color}`
+                                    : "opacity-0",
+                                ].join(" ")}
+                              />
+                            );
+                          }
+                        )}
+                      </div>
                     </div>
                   </button>
                 );

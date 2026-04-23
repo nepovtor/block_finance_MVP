@@ -27,46 +27,46 @@ export function DragGhost({
 
   return (
     <div ref={dragGhostRef} className="pointer-events-none fixed z-50 opacity-85">
-      <div
-        className={getPieceGridClass(width)}
-        style={getPieceGridStyle()}
-      >
-        {Array.from({ length: height * width }).map((_, cellIndex) => {
-          const cellRow = Math.floor(cellIndex / width);
-          const cellCol = cellIndex % width;
-          const active = piece.shape.cells.some(
-            (cell) => cell.row === cellRow && cell.col === cellCol
-          );
-          const cellStyle = active
-            ? {
-                ...getPieceCellStyle(
-                  cellLookup,
-                  cellRow,
-                  cellCol,
-                  DRAG_GHOST_CELL_RADIUS
-                ),
-                width: `${DRAG_GHOST_CELL_SIZE}px`,
-                height: `${DRAG_GHOST_CELL_SIZE}px`,
-              }
-            : {
-                width: `${DRAG_GHOST_CELL_SIZE}px`,
-                height: `${DRAG_GHOST_CELL_SIZE}px`,
-              };
+      <div className="piece-cluster-3d piece-cluster-ghost inline-grid">
+        <div
+          className={getPieceGridClass(width)}
+          style={getPieceGridStyle()}
+        >
+          {Array.from({ length: height * width }).map((_, cellIndex) => {
+            const cellRow = Math.floor(cellIndex / width);
+            const cellCol = cellIndex % width;
+            const active = piece.shape.cells.some(
+              (cell) => cell.row === cellRow && cell.col === cellCol
+            );
+            const cellStyle = active
+              ? {
+                  ...getPieceCellStyle(
+                    cellLookup,
+                    cellRow,
+                    cellCol,
+                    DRAG_GHOST_CELL_RADIUS
+                  ),
+                  width: `${DRAG_GHOST_CELL_SIZE}px`,
+                  height: `${DRAG_GHOST_CELL_SIZE}px`,
+                }
+              : {
+                  width: `${DRAG_GHOST_CELL_SIZE}px`,
+                  height: `${DRAG_GHOST_CELL_SIZE}px`,
+                };
 
-          return (
-            <div
-              key={`${piece.instanceId}-drag-${cellIndex}`}
-              className={[
-                active
-                  ? `piece-cell-3d piece-cell-ghost ${piece.shape.color}`
-                  : "opacity-0",
-              ].join(" ")}
-              style={cellStyle}
-            >
-              {active ? <span className="piece-cell-surface" /> : null}
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={`${piece.instanceId}-drag-${cellIndex}`}
+                className={[
+                  active
+                    ? `piece-cell-connected ${piece.shape.color}`
+                    : "opacity-0",
+                ].join(" ")}
+                style={cellStyle}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 
 export const PIECE_CELL_GAP = 0;
 export const PIECE_CELL_OVERLAP = 1;
-export const PIECE_SURFACE_OVERLAP = 2;
 
 export function getPieceGridClass(width: number) {
   switch (width) {

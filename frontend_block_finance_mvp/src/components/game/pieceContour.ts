@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ShapeCell } from "../../game/shapes";
-import { PIECE_CELL_OVERLAP, PIECE_SURFACE_OVERLAP } from "./pieceLayout";
+import { PIECE_CELL_OVERLAP } from "./pieceLayout";
 
 type PieceCellLookup = Set<string>;
 
@@ -31,14 +31,5 @@ export function getPieceCellStyle(
     marginRight: hasRight ? `${-PIECE_CELL_OVERLAP}px` : undefined,
     marginBottom: hasBottom ? `${-PIECE_CELL_OVERLAP}px` : undefined,
     zIndex: hasRight || hasBottom ? 1 : 0,
-    "--piece-surface-top-inset": hasTop ? `${-PIECE_SURFACE_OVERLAP}px` : "0px",
-    "--piece-surface-right-inset": hasRight ? `${-PIECE_SURFACE_OVERLAP}px` : "0px",
-    "--piece-surface-bottom-inset": hasBottom ? `${-PIECE_SURFACE_OVERLAP}px` : "0px",
-    "--piece-surface-left-inset": hasLeft ? `${-PIECE_SURFACE_OVERLAP}px` : "0px",
-    "--piece-edge-top-alpha": hasTop ? "0" : "0.08",
-    "--piece-edge-right-alpha": hasRight ? "0" : "0.08",
-    "--piece-edge-bottom-alpha": hasBottom ? "0" : "0.08",
-    "--piece-edge-left-alpha": hasLeft ? "0" : "0.08",
-    "--piece-gloss-opacity": hasTop ? "0.08" : "0.82",
   } as CSSProperties;
 }
