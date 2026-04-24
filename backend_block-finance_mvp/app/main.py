@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import os
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +11,7 @@ from app.api.game import router as game_router
 from app.api.rewards import router as reward_router
 from app.api.users import router as user_router
 from app.db.base import Base
-from app.db.session import SessionLocal, engine
+from app.db.session import DATABASE_URL, SessionLocal, check_database_connection, engine
 from app.services.user_service import ensure_demo_user
 
 import app.models.user
@@ -20,7 +21,7 @@ import app.models.game_session
 
 load_dotenv()
 
-DEFAULT_ALLOWED_ORIGINS = (
+DEFAULT_CORS_ORIGINS = (
     "http://127.0.0.1:5173",
     "http://localhost:5173",
 )
@@ -34,16 +35,31 @@ DEFAULT_ALLOWED_ORIGIN_REGEX = (
 )
 
 
+def parse_csv_env(name: str) -> list[str]:
+    raw_value = os.getenv(name, "")
+    values = [value.strip() for value in raw_value.split(",")]
+    return [value for value in values if value]
+
+
 def get_allowed_origins() -> list[str]:
-    raw_origins = os.getenv("ALLOWED_ORIGINS")
-    if not raw_origins:
-        return list(DEFAULT_ALLOWED_ORIGINS)
+    configured_origins = (
+        parse_csv_env("CORS_ORIGINS")
+        or parse_csv_env("ALLOWED_ORIGINS")
+    )
+    frontend_url = os.getenv("FRONTEND_URL", "").strip()
 
-    origins = [origin.strip() for origin in raw_origins.split(",")]
-    return [origin for origin in origins if origin]
+    merged_origins = [
+        *configured_origins,
+        *( [frontend_url] if frontend_url else [] ),
+    ]
+
+    if merged_origins:
+        return list(dict.fromkeys(merged_origins))
+
+    return list(DEFAULT_CORS_ORIGINS)
 
 
-def get_allowed_origin_regex() -> str | None:
+def get_allowed_origin_regex() -> Optional[str]:
     raw_regex = os.getenv("ALLOWED_ORIGIN_REGEX")
     if raw_regex is not None:
         cleaned = raw_regex.strip()
@@ -90,7 +106,16 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["meta"])
     async def health():
-        return {"status": "ok"}
+        return {"status": "ok", "environment": os.getenv("ENVIRONMENT", "development")}
+
+    @app.get("/ready", tags=["meta"])
+    async def ready():
+        database_ready = await check_database_connection()
+        return {
+            "status": "ok" if database_ready else "degraded",
+            "database": "ok" if database_ready else "unavailable",
+            "database_url_configured": bool(DATABASE_URL),
+        }
 
     app.include_router(transaction_router)
     app.include_router(game_router)

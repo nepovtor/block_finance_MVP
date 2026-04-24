@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,8 +7,8 @@ from app.models.reward import Reward
 
 
 async def get_active_reward(
-    session: AsyncSession, user_id: int, reward_type: str | None = None
-) -> Reward | None:
+    session: AsyncSession, user_id: int, reward_type: Optional[str] = None
+) -> Optional[Reward]:
     query = (
         select(Reward)
         .where(
@@ -23,7 +25,7 @@ async def get_active_reward(
 
 async def consume_reward(
     session: AsyncSession, user_id: int, reward_type: str
-) -> Reward | None:
+) -> Optional[Reward]:
     reward = await get_active_reward(session, user_id, reward_type)
     if reward is None:
         return None

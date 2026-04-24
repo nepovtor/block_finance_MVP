@@ -1,3 +1,5 @@
+from typing import Optional, Union
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,13 +28,13 @@ async def ensure_demo_user(session: AsyncSession) -> User:
     return user
 
 
-async def get_user_by_id(session: AsyncSession, user_id: int) -> User | None:
+async def get_user_by_id(session: AsyncSession, user_id: int) -> Optional[User]:
     return await session.scalar(select(User).where(User.id == user_id))
 
 
 async def serialize_user_profile(
     session: AsyncSession, user: User
-) -> dict[str, int | str | dict[str, int | str] | None]:
+) -> dict[str, Union[int, str, dict[str, Union[int, str]], None]]:
     active_reward = await get_active_reward(session, user.id)
 
     return {
