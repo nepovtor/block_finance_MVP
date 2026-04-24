@@ -390,6 +390,369 @@
     opacity: 0.72;
   }
 
+  .finance-illustration {
+    @apply pointer-events-none absolute inset-[3px];
+    filter: drop-shadow(0 1px 1px rgba(2, 6, 23, 0.18));
+  }
+
+  .finance-illustration-compact {
+    inset: 2px;
+    transform: scale(0.92);
+    transform-origin: center;
+  }
+
+  .finance-illustration > span {
+    @apply absolute;
+  }
+
+  .illustration-bank-roof {
+    left: 12%;
+    right: 12%;
+    top: 8%;
+    height: 18%;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    background: linear-gradient(180deg, rgba(253,224,71,0.95), rgba(245,158,11,0.72));
+  }
+
+  .illustration-bank-body {
+    left: 18%;
+    right: 18%;
+    top: 24%;
+    bottom: 16%;
+    border-radius: 0.28rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(15,23,42,0.1)), rgba(15,23,42,0.2);
+  }
+
+  .illustration-bank-columns {
+    left: 24%;
+    right: 24%;
+    top: 31%;
+    bottom: 22%;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.46) 0 12%, transparent 12% 26%, rgba(255,255,255,0.46) 26% 38%, transparent 38% 62%, rgba(255,255,255,0.46) 62% 74%, transparent 74% 88%, rgba(255,255,255,0.46) 88% 100%);
+    opacity: 0.85;
+  }
+
+  .illustration-bank-base {
+    left: 16%;
+    right: 16%;
+    bottom: 11%;
+    height: 10%;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.28);
+  }
+
+  .illustration-chip-frame {
+    inset: 14%;
+    border-radius: 0.3rem;
+    border: 1px solid rgba(255,255,255,0.45);
+    background: linear-gradient(135deg, rgba(253,224,71,0.92), rgba(250,204,21,0.36) 46%, rgba(15,23,42,0.16));
+  }
+
+  .illustration-chip-grid {
+    left: 24%;
+    right: 24%;
+    top: 24%;
+    bottom: 24%;
+    border-radius: 0.18rem;
+    background:
+      linear-gradient(90deg, rgba(15,23,42,0.3) 0 10%, transparent 10% 32%, rgba(15,23,42,0.3) 32% 42%, transparent 42% 58%, rgba(15,23,42,0.3) 58% 68%, transparent 68% 90%, rgba(15,23,42,0.3) 90% 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.38) 0 18%, transparent 18% 42%, rgba(255,255,255,0.26) 42% 58%, transparent 58% 82%, rgba(255,255,255,0.18) 82% 100%);
+  }
+
+  .illustration-chip-traces {
+    left: 10%;
+    right: 10%;
+    top: 16%;
+    bottom: 16%;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0.34) 0 6%, transparent 6% 94%, rgba(255,255,255,0.34) 94% 100%),
+      linear-gradient(180deg, rgba(255,255,255,0.34) 0 6%, transparent 6% 94%, rgba(255,255,255,0.34) 94% 100%);
+    opacity: 0.5;
+  }
+
+  .illustration-card-shell {
+    left: 8%;
+    right: 8%;
+    top: 18%;
+    bottom: 18%;
+    border-radius: 0.35rem;
+    background: linear-gradient(135deg, rgba(15,23,42,0.04), rgba(255,255,255,0.14) 30%, rgba(56,189,248,0.22) 74%, rgba(15,23,42,0.18));
+    border: 1px solid rgba(255,255,255,0.24);
+  }
+
+  .illustration-card-stripe {
+    left: 10%;
+    right: 10%;
+    top: 24%;
+    height: 12%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.78), rgba(148,163,184,0.14));
+  }
+
+  .illustration-card-chip {
+    left: 16%;
+    width: 22%;
+    top: 44%;
+    bottom: 28%;
+    border-radius: 0.18rem;
+    background: linear-gradient(180deg, rgba(250,204,21,0.92), rgba(180,83,9,0.72));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.42);
+  }
+
+  .illustration-card-orb {
+    right: 16%;
+    bottom: 26%;
+    width: 22%;
+    height: 22%;
+    border-radius: 999px;
+    background: radial-gradient(circle at 34% 34%, rgba(255,255,255,0.92), rgba(34,211,238,0.34) 52%, rgba(15,23,42,0.26) 100%);
+  }
+
+  .illustration-vault-door {
+    inset: 12%;
+    border-radius: 0.34rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04) 36%, rgba(15,23,42,0.16));
+    border: 1px solid rgba(255,255,255,0.28);
+  }
+
+  .illustration-vault-ring {
+    left: 24%;
+    right: 24%;
+    top: 24%;
+    bottom: 24%;
+    border-radius: 999px;
+    border: 2px solid rgba(255,255,255,0.46);
+  }
+
+  .illustration-vault-wheel {
+    left: 35%;
+    right: 35%;
+    top: 35%;
+    bottom: 35%;
+    border-radius: 999px;
+    background:
+      linear-gradient(90deg, transparent 44%, rgba(15,23,42,0.32) 44% 56%, transparent 56%),
+      linear-gradient(180deg, transparent 44%, rgba(15,23,42,0.32) 44% 56%, transparent 56%),
+      radial-gradient(circle at center, rgba(255,255,255,0.72) 0 22%, transparent 23%);
+  }
+
+  .illustration-vault-bolts {
+    inset: 18%;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(255,255,255,0.72) 0 6%, transparent 7%),
+      radial-gradient(circle at 82% 18%, rgba(255,255,255,0.72) 0 6%, transparent 7%),
+      radial-gradient(circle at 18% 82%, rgba(255,255,255,0.72) 0 6%, transparent 7%),
+      radial-gradient(circle at 82% 82%, rgba(255,255,255,0.72) 0 6%, transparent 7%);
+    opacity: 0.9;
+  }
+
+  .illustration-coin-disc {
+    inset: 14%;
+    border-radius: 999px;
+    background: radial-gradient(circle at 32% 30%, rgba(255,255,255,0.98), rgba(253,224,71,0.72) 38%, rgba(217,119,6,0.84) 100%);
+  }
+
+  .illustration-coin-ring {
+    left: 22%;
+    right: 22%;
+    top: 22%;
+    bottom: 22%;
+    border-radius: 999px;
+    border: 2px solid rgba(255,255,255,0.54);
+    opacity: 0.72;
+  }
+
+  .illustration-coin-center {
+    left: 40%;
+    right: 40%;
+    top: 40%;
+    bottom: 40%;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.8);
+  }
+
+  .illustration-coin-glint {
+    left: 28%;
+    width: 26%;
+    top: 20%;
+    height: 16%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0));
+    filter: blur(0.6px);
+  }
+
+  .illustration-terminal-body {
+    inset: 12%;
+    border-radius: 0.34rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(15,23,42,0.12)), rgba(15,23,42,0.22);
+    border: 1px solid rgba(255,255,255,0.24);
+  }
+
+  .illustration-terminal-screen {
+    left: 18%;
+    right: 18%;
+    top: 18%;
+    height: 24%;
+    border-radius: 0.18rem;
+    background: linear-gradient(135deg, rgba(34,211,238,0.8), rgba(16,185,129,0.2));
+  }
+
+  .illustration-terminal-keys {
+    left: 22%;
+    right: 22%;
+    bottom: 18%;
+    height: 24%;
+    background:
+      radial-gradient(circle at 12% 20%, rgba(255,255,255,0.72) 0 7%, transparent 8%),
+      radial-gradient(circle at 50% 20%, rgba(255,255,255,0.72) 0 7%, transparent 8%),
+      radial-gradient(circle at 88% 20%, rgba(255,255,255,0.72) 0 7%, transparent 8%),
+      radial-gradient(circle at 12% 70%, rgba(255,255,255,0.62) 0 7%, transparent 8%),
+      radial-gradient(circle at 50% 70%, rgba(255,255,255,0.62) 0 7%, transparent 8%),
+      radial-gradient(circle at 88% 70%, rgba(255,255,255,0.62) 0 7%, transparent 8%);
+  }
+
+  .illustration-terminal-wave {
+    right: 16%;
+    top: 6%;
+    width: 24%;
+    height: 22%;
+    background:
+      radial-gradient(circle at 0 100%, transparent 0 34%, rgba(255,255,255,0.84) 35% 41%, transparent 42%),
+      radial-gradient(circle at 0 100%, transparent 0 56%, rgba(255,255,255,0.62) 57% 63%, transparent 64%);
+    transform: rotate(-8deg);
+  }
+
+  .illustration-money-bill {
+    left: 10%;
+    right: 10%;
+    top: 20%;
+    bottom: 20%;
+    border-radius: 0.28rem;
+    background: linear-gradient(180deg, rgba(236,253,245,0.86), rgba(16,185,129,0.22));
+    border: 1px solid rgba(255,255,255,0.24);
+  }
+
+  .illustration-money-band {
+    left: 18%;
+    right: 18%;
+    top: 40%;
+    height: 18%;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.16);
+  }
+
+  .illustration-money-seal {
+    left: 38%;
+    right: 38%;
+    top: 30%;
+    bottom: 30%;
+    border-radius: 999px;
+    background: radial-gradient(circle at 34% 34%, rgba(255,255,255,0.86), rgba(255,255,255,0.34) 52%, rgba(15,23,42,0.22));
+  }
+
+  .illustration-money-corners {
+    inset: 14%;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(255,255,255,0.56) 0 5%, transparent 6%),
+      radial-gradient(circle at 88% 18%, rgba(255,255,255,0.56) 0 5%, transparent 6%),
+      radial-gradient(circle at 12% 82%, rgba(255,255,255,0.56) 0 5%, transparent 6%),
+      radial-gradient(circle at 88% 82%, rgba(255,255,255,0.56) 0 5%, transparent 6%);
+  }
+
+  .illustration-moby-body {
+    left: 14%;
+    right: 18%;
+    top: 30%;
+    bottom: 24%;
+    border-radius: 55% 45% 48% 52% / 58% 54% 46% 42%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(34,211,238,0.38) 44%, rgba(14,116,144,0.66));
+  }
+
+  .illustration-moby-fin {
+    left: 34%;
+    width: 24%;
+    top: 18%;
+    height: 24%;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(34,211,238,0.46));
+  }
+
+  .illustration-moby-tail {
+    right: 10%;
+    top: 38%;
+    width: 22%;
+    height: 24%;
+    clip-path: polygon(0 50%, 100% 0, 84% 50%, 100% 100%);
+    background: linear-gradient(135deg, rgba(255,255,255,0.78), rgba(6,182,212,0.44));
+  }
+
+  .illustration-moby-eye {
+    left: 28%;
+    top: 44%;
+    width: 8%;
+    height: 8%;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.84);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.28);
+  }
+
+  .illustration-gateway-track {
+    inset: 18%;
+    background:
+      linear-gradient(135deg, transparent 0 18%, rgba(255,255,255,0.86) 18% 24%, transparent 24% 42%, rgba(255,255,255,0.86) 42% 48%, transparent 48% 66%, rgba(255,255,255,0.86) 66% 72%, transparent 72%);
+  }
+
+  .illustration-gateway-node {
+    width: 18%;
+    height: 18%;
+    border-radius: 999px;
+    background: radial-gradient(circle at 34% 34%, rgba(255,255,255,0.94), rgba(129,140,248,0.54) 60%, rgba(15,23,42,0.24));
+  }
+
+  .illustration-gateway-node-a {
+    left: 12%;
+    top: 18%;
+  }
+
+  .illustration-gateway-node-b {
+    left: 42%;
+    top: 42%;
+  }
+
+  .illustration-gateway-node-c {
+    right: 10%;
+    bottom: 14%;
+  }
+
+  .illustration-ledger-sheet {
+    left: 16%;
+    right: 16%;
+    top: 16%;
+    bottom: 16%;
+    border-radius: 0.24rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(250,204,21,0.18));
+    border: 1px solid rgba(255,255,255,0.22);
+  }
+
+  .illustration-ledger-lines {
+    left: 26%;
+    right: 20%;
+    top: 28%;
+    bottom: 22%;
+    background:
+      linear-gradient(180deg, transparent 0 12%, rgba(15,23,42,0.24) 12% 18%, transparent 18% 40%, rgba(15,23,42,0.24) 40% 46%, transparent 46% 68%, rgba(15,23,42,0.24) 68% 74%, transparent 74%);
+  }
+
+  .illustration-ledger-tab {
+    left: 18%;
+    top: 18%;
+    width: 18%;
+    height: 14%;
+    border-radius: 0.12rem;
+    background: rgba(251,191,36,0.76);
+  }
+
   .finance-core-chip,
   .finance-core-card,
   .finance-core-terminal {
