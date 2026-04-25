@@ -1,6 +1,6 @@
 <div align="center">
 
-# MTBlocks
+# BLOCK_IN_APP
 
 ### A mobile-first fintech gamification prototype with a premium banking aesthetic and a block puzzle gameplay loop
 
