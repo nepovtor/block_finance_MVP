@@ -254,17 +254,31 @@ export default function AuthPage() {
                 <span className="mb-2 block text-sm text-slate-300">
                   {t("auth.passwordLabel", language)}
                 </span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete={mode === "login" ? "current-password" : "new-password"}
-                  maxLength={128}
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
-                  placeholder={t("auth.passwordPlaceholder", language)}
-                  minLength={8}
-                  required
-                />
+                {mode === "login" ? (
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="current-password"
+                    maxLength={128}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
+                    placeholder={t("auth.passwordPlaceholder", language)}
+                    minLength={8}
+                    required
+                  />
+                ) : (
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete="new-password"
+                    maxLength={128}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
+                    placeholder={t("auth.passwordPlaceholder", language)}
+                    minLength={8}
+                    required
+                  />
+                )}
               </label>
 
               {error ? (
