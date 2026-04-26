@@ -37,7 +37,7 @@ DEFAULT_ALLOWED_ORIGIN_REGEX = (
 
 
 def get_allowed_origins() -> list[str]:
-    raw_origins = os.getenv("ALLOWED_ORIGINS")
+    raw_origins = os.getenv("ALLOWED_ORIGINS") or os.getenv("CORS_ORIGINS")
     if not raw_origins:
         return list(DEFAULT_ALLOWED_ORIGINS)
 
