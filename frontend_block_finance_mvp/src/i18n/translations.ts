@@ -33,6 +33,27 @@ export const translations: Record<Language, TranslationDictionary> = {
     "language.heroSubtitle":
       "Block Finance can now switch the whole interface to your chosen language.",
 
+    "auth.badge": "Secure demo access",
+    "auth.title": "Sign in to your Block Finance profile.",
+    "auth.subtitle":
+      "Create an account or sign in to save progress, unlock rewards, and carry your banking actions into the game loop.",
+    "auth.step1": "1. Enter your phone",
+    "auth.step2": "2. Create or use your password",
+    "auth.step3": "3. Continue into the demo",
+    "auth.login": "Login",
+    "auth.register": "Register",
+    "auth.nameLabel": "Name",
+    "auth.namePlaceholder": "Alex",
+    "auth.phoneLabel": "Phone",
+    "auth.phonePlaceholder": "+375 29 123 45 67",
+    "auth.passwordLabel": "Password",
+    "auth.passwordPlaceholder": "At least 6 characters",
+    "auth.loginCta": "Sign in",
+    "auth.registerCta": "Create account",
+    "auth.processing": "Processing...",
+    "auth.logout": "Logout",
+    "auth.genericError": "Could not complete authorization",
+
     "onboarding.badge": "Hackathon MVP Demo",
     "onboarding.quickIntroLabel": "Understand the product in under 8 seconds:",
     "onboarding.quickIntroValue":
@@ -242,6 +263,27 @@ export const translations: Record<Language, TranslationDictionary> = {
     "language.heroTitle": "Превратите повседневные платежи в игровую энергию.",
     "language.heroSubtitle":
       "Теперь Block Finance может переключать весь интерфейс на выбранный вами язык.",
+
+    "auth.badge": "Безопасный вход в демо",
+    "auth.title": "Войдите в профиль Block Finance.",
+    "auth.subtitle":
+      "Создайте аккаунт или войдите, чтобы сохранять прогресс, получать награды и переносить банковские действия в игровой цикл.",
+    "auth.step1": "1. Введите телефон",
+    "auth.step2": "2. Создайте или используйте пароль",
+    "auth.step3": "3. Продолжите в демо",
+    "auth.login": "Войти",
+    "auth.register": "Регистрация",
+    "auth.nameLabel": "Имя",
+    "auth.namePlaceholder": "Алекс",
+    "auth.phoneLabel": "Телефон",
+    "auth.phonePlaceholder": "+375 29 123 45 67",
+    "auth.passwordLabel": "Пароль",
+    "auth.passwordPlaceholder": "Минимум 6 символов",
+    "auth.loginCta": "Войти",
+    "auth.registerCta": "Создать аккаунт",
+    "auth.processing": "Обработка...",
+    "auth.logout": "Выйти",
+    "auth.genericError": "Не удалось выполнить авторизацию",
 
     "onboarding.badge": "Демо Hackathon MVP",
     "onboarding.quickIntroLabel": "Поймите продукт меньше чем за 8 секунд:",

@@ -1,3 +1,5 @@
+import { useAppStore } from "../../store/appStore";
+
 const API_BASE_URL = normalizeBaseUrl(
   import.meta.env.VITE_API_URL || inferDefaultApiBaseUrl()
 );
@@ -55,9 +57,14 @@ export async function apiFetch<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const headers = new Headers(options.headers);
+  const authToken = useAppStore.getState().authToken;
 
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
+  }
+
+  if (authToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${authToken}`);
   }
 
   const response = await fetch(buildUrl(path), {
@@ -68,12 +75,28 @@ export async function apiFetch<T>(
   const responseBody = await parseResponseBody(response);
 
   if (!response.ok) {
+    const detailedMessage =
+      typeof responseBody === "object" &&
+      responseBody !== null &&
+      "detail" in responseBody &&
+      typeof responseBody.detail === "string"
+        ? responseBody.detail
+        : null;
     const message =
-      typeof responseBody === "string" && responseBody
+      detailedMessage ??
+      (typeof responseBody === "string" && responseBody
         ? responseBody
-        : `Request failed with status ${response.status}`;
+        : `Request failed with status ${response.status}`);
 
-    throw new ApiError(message, response.status, responseBody);
+    if (response.status === 401) {
+      useAppStore.getState().clearSession();
+    }
+
+    throw new ApiError(
+      message,
+      response.status,
+      responseBody
+    );
   }
 
   return responseBody as T;

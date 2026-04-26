@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 export type Language = "en" | "ru";
+export const AUTH_TOKEN_STORAGE_KEY = "block-finance-auth-token";
 
 type Reward = {
   type: string;
@@ -29,6 +30,13 @@ type DemoProductState = {
 const DEMO_PRODUCT_STORAGE_KEY = "block-finance-demo-product-state";
 const LANGUAGE_STORAGE_KEY = "block-finance-language";
 const LANGUAGE_SELECTED_STORAGE_KEY = "block-finance-language-selected";
+const DEFAULT_USER: User = {
+  name: "Player",
+  level: 1,
+  xp: 0,
+  xpToNext: 300,
+  streak: 0,
+};
 
 function loadLanguage(): Language {
   if (typeof window === "undefined") {
@@ -65,6 +73,31 @@ function persistLanguage(language: Language) {
 
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
   window.localStorage.setItem(LANGUAGE_SELECTED_STORAGE_KEY, "true");
+}
+
+function loadAuthToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function persistAuthToken(token: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (token) {
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+    return;
+  }
+
+  window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
 }
 
 function loadDemoProductState(): DemoProductState {
@@ -132,11 +165,14 @@ type AppState = {
   gameSessionId: number | null;
   language: Language;
   hasSelectedLanguage: boolean;
+  authToken: string | null;
   demoProduct: DemoProductState;
   setUser: (user: User) => void;
   setReward: (reward: Reward) => void;
   setGameSessionId: (sessionId: number | null) => void;
   setLanguage: (language: Language) => void;
+  setSession: (token: string, user: User) => void;
+  clearSession: () => void;
   addXP: (value: number) => void;
   recordPayment: () => number;
   addToSavingsGoal: (amount: number, bonusMessage?: string | null) => void;
@@ -147,19 +183,15 @@ type AppState = {
 const initialDemoProductState = loadDemoProductState();
 const initialLanguage = loadLanguage();
 const initialHasSelectedLanguage = loadHasSelectedLanguage();
+const initialAuthToken = loadAuthToken();
 
 export const useAppStore = create<AppState>((set) => ({
-  user: {
-    name: "Alex",
-    level: 3,
-    xp: 240,
-    xpToNext: 300,
-    streak: 4,
-  },
+  user: DEFAULT_USER,
   reward: null,
   gameSessionId: null,
   language: initialLanguage,
   hasSelectedLanguage: initialHasSelectedLanguage,
+  authToken: initialAuthToken,
   demoProduct: initialDemoProductState,
   setUser: (user) => set({ user }),
   setReward: (reward) => set({ reward }),
@@ -167,6 +199,24 @@ export const useAppStore = create<AppState>((set) => ({
   setLanguage: (language) => {
     persistLanguage(language);
     set({ language, hasSelectedLanguage: true });
+  },
+  setSession: (token, user) => {
+    persistAuthToken(token);
+    set({
+      authToken: token,
+      user,
+      reward: null,
+      gameSessionId: null,
+    });
+  },
+  clearSession: () => {
+    persistAuthToken(null);
+    set({
+      authToken: null,
+      user: DEFAULT_USER,
+      reward: null,
+      gameSessionId: null,
+    });
   },
   addXP: (value) =>
     set((state) => ({

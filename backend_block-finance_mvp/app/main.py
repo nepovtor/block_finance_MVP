@@ -9,8 +9,10 @@ from app.api.transactions import router as transaction_router
 from app.api.game import router as game_router
 from app.api.rewards import router as reward_router
 from app.api.users import router as user_router
+from app.api.auth import router as auth_router
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
+from app.services.auth_service import ensure_user_schema
 from app.services.user_service import ensure_demo_user
 
 import app.models.user
@@ -56,6 +58,7 @@ def get_allowed_origin_regex() -> str | None:
 async def lifespan(_: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(ensure_user_schema)
 
     async with SessionLocal() as session:
         await ensure_demo_user(session)
@@ -96,6 +99,7 @@ def create_app() -> FastAPI:
     app.include_router(game_router)
     app.include_router(reward_router)
     app.include_router(user_router)
+    app.include_router(auth_router)
 
     return app
 

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { t } from "../i18n/translations";
-import { getProfile, makeDemoPayment } from "../services/api";
+import { getProfile, logout, makeDemoPayment } from "../services/api";
 import { getRecentAnalyticsEvents, trackEvent } from "../services/analytics";
 import { useAppStore } from "../store/appStore";
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const {
     user,
     reward,
@@ -18,6 +19,7 @@ export default function DashboardPage() {
     addXP,
     recordReferralInvite,
     language,
+    clearSession,
   } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -155,9 +157,30 @@ export default function DashboardPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      // Clear local session even if the server token is already invalid.
+    } finally {
+      clearSession();
+      navigate("/auth", { replace: true });
+    }
+  };
+
   return (
     <div className="page-with-bottom-action min-h-screen overflow-x-clip p-4 text-slate-100">
       <div className="mx-auto max-w-6xl space-y-5">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-slate-200 transition hover:bg-white/[0.1]"
+          >
+            {t("auth.logout", language)}
+          </button>
+        </div>
+
         <div className="space-y-4 md:hidden">
           <div className="glass-panel animate-rise-in bg-grid relative overflow-hidden p-5">
             <div className="text-xs uppercase tracking-[0.24em] text-emerald-200">

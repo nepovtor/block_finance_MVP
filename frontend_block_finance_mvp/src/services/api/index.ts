@@ -1,7 +1,5 @@
 import { apiFetch } from "./client";
 
-export const DEMO_USER_ID = 1;
-
 export type DemoPaymentResponse = {
   transaction_created: boolean;
   reward_granted: boolean;
@@ -24,6 +22,11 @@ export type UserProfile = {
     value: number;
     source?: string;
   } | null;
+};
+
+export type AuthResponse = {
+  token: string;
+  user: UserProfile;
 };
 
 export type GameSessionResponse = {
@@ -49,7 +52,6 @@ export async function makeDemoPayment() {
   return apiFetch<DemoPaymentResponse>("/transactions/demo", {
     method: "POST",
     body: JSON.stringify({
-      user_id: DEMO_USER_ID,
       amount: 5,
       category: "coffee",
     }),
@@ -57,22 +59,39 @@ export async function makeDemoPayment() {
 }
 
 export async function getProfile() {
-  return apiFetch<UserProfile>(`/users/${DEMO_USER_ID}`);
+  return apiFetch<UserProfile>("/auth/me");
+}
+
+export async function login(phone: string, password: string) {
+  return apiFetch<AuthResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ phone, password }),
+  });
+}
+
+export async function register(name: string, phone: string, password: string) {
+  return apiFetch<AuthResponse>("/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ name, phone, password }),
+  });
+}
+
+export async function logout() {
+  return apiFetch<null>("/auth/logout", {
+    method: "POST",
+  });
 }
 
 export async function startGameSession() {
-  return apiFetch<GameSessionResponse>(`/game/start?user_id=${DEMO_USER_ID}`, {
+  return apiFetch<GameSessionResponse>("/game/start", {
     method: "POST",
   });
 }
 
 export async function useReward(rewardType: string) {
-  return apiFetch<RewardUseResponse>(
-    `/rewards/use?user_id=${DEMO_USER_ID}&reward_type=${rewardType}`,
-    {
-      method: "POST",
-    }
-  );
+  return apiFetch<RewardUseResponse>(`/rewards/use?reward_type=${rewardType}`, {
+    method: "POST",
+  });
 }
 
 export async function finishGameSession(

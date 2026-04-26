@@ -2,13 +2,18 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.models.user import User
+from app.services.auth_service import get_current_user
 from app.services.game_service import start_game, finish_game
 
 router = APIRouter(prefix="/game", tags=["game"])
 
 @router.post("/start")
-async def start(user_id: int, db: AsyncSession = Depends(get_db)):
-    return await start_game(db, user_id)
+async def start(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await start_game(db, current_user.id)
 
 @router.post("/finish")
 async def finish(

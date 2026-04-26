@@ -5,9 +5,10 @@ import LanguageSelectionPage from "../pages/LanguageSelectionPage";
 import Onboarding from "../pages/OnboardingPage";
 import Dashboard from "../pages/DashboardPage";
 import Game from "../pages/GamePage";
+import AuthPage from "../pages/AuthPage";
 
 export default function Router() {
-  const { hasSelectedLanguage } = useAppStore();
+  const { hasSelectedLanguage, authToken } = useAppStore();
 
   if (!hasSelectedLanguage) {
     return (
@@ -19,12 +20,25 @@ export default function Router() {
     );
   }
 
+  if (!authToken) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Onboarding />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/game" element={<Game />} />
+        <Route path="/auth" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
