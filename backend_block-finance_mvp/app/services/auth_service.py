@@ -3,11 +3,13 @@ from __future__ import annotations
 import hashlib
 import hmac
 import secrets
+from asyncio import sleep
 from typing import Any
 
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy import inspect, select, text
 from sqlalchemy.engine import Connection
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -16,10 +18,50 @@ from app.services.user_service import serialize_user_profile
 
 PBKDF2_ITERATIONS = 120_000
 TOKEN_PREFIX = "bfmvp_"
+MIN_PASSWORD_LENGTH = 8
+MIN_PHONE_DIGITS = 10
+MAX_PHONE_DIGITS = 15
+FAILED_LOGIN_DELAY_SECONDS = 0.35
 
 
 def normalize_phone(phone: str) -> str:
-    return "".join(character for character in phone if character.isdigit() or character == "+")
+    digits = "".join(character for character in phone if character.isdigit())
+    return f"+{digits}" if digits else ""
+
+
+def validate_name(name: str) -> str:
+    cleaned_name = " ".join(name.split()).strip()
+    if len(cleaned_name) < 2 or len(cleaned_name) > 80:
+        raise HTTPException(status_code=422, detail="Name must be between 2 and 80 characters")
+    return cleaned_name
+
+
+def validate_phone(phone: str) -> str:
+    normalized_phone = normalize_phone(phone)
+    digit_count = len(normalized_phone.removeprefix("+"))
+
+    if digit_count < MIN_PHONE_DIGITS or digit_count > MAX_PHONE_DIGITS:
+        raise HTTPException(status_code=422, detail="Enter a valid phone number")
+
+    return normalized_phone
+
+
+def validate_password(password: str) -> str:
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Password must be at least {MIN_PASSWORD_LENGTH} characters",
+        )
+
+    has_letter = any(character.isalpha() for character in password)
+    has_digit = any(character.isdigit() for character in password)
+    if not has_letter or not has_digit:
+        raise HTTPException(
+            status_code=422,
+            detail="Password must contain at least one letter and one number",
+        )
+
+    return password
 
 
 def hash_password(password: str, salt: str | None = None) -> str:
@@ -44,6 +86,10 @@ def verify_password(password: str, stored_hash: str | None) -> bool:
 
 def issue_auth_token() -> str:
     return f"{TOKEN_PREFIX}{secrets.token_urlsafe(32)}"
+
+
+def hash_auth_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def ensure_user_schema(connection: Connection) -> None:
@@ -82,26 +128,36 @@ async def register_user(
     phone: str,
     password: str,
 ) -> dict[str, Any]:
-    normalized_phone = normalize_phone(phone)
+    cleaned_name = validate_name(name)
+    normalized_phone = validate_phone(phone)
+    validated_password = validate_password(password)
     existing_user = await session.scalar(select(User).where(User.phone == normalized_phone))
     if existing_user is not None:
         raise HTTPException(status_code=409, detail="User with this phone already exists")
 
+    raw_token = issue_auth_token()
     user = User(
-        name=name.strip(),
+        name=cleaned_name,
         phone=normalized_phone,
-        password_hash=hash_password(password),
-        auth_token=issue_auth_token(),
+        password_hash=hash_password(validated_password),
+        auth_token=hash_auth_token(raw_token),
         level=1,
         xp=0,
         streak=0,
     )
     session.add(user)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="User with this phone already exists",
+        ) from exc
     await session.refresh(user)
 
     return {
-        "token": user.auth_token,
+        "token": raw_token,
         "user": await serialize_user_profile(session, user),
     }
 
@@ -111,16 +167,19 @@ async def login_user(
     phone: str,
     password: str,
 ) -> dict[str, Any]:
-    normalized_phone = normalize_phone(phone)
+    normalized_phone = validate_phone(phone)
+    validate_password(password)
     user = await session.scalar(select(User).where(User.phone == normalized_phone))
     if user is None or not verify_password(password, user.password_hash):
+        await sleep(FAILED_LOGIN_DELAY_SECONDS)
         raise HTTPException(status_code=401, detail="Invalid phone or password")
 
-    user.auth_token = issue_auth_token()
+    raw_token = issue_auth_token()
+    user.auth_token = hash_auth_token(raw_token)
     await session.commit()
 
     return {
-        "token": user.auth_token,
+        "token": raw_token,
         "user": await serialize_user_profile(session, user),
     }
 
@@ -141,7 +200,7 @@ async def get_current_user(
     if not token:
         raise HTTPException(status_code=401, detail="Authorization required")
 
-    user = await db.scalar(select(User).where(User.auth_token == token))
+    user = await db.scalar(select(User).where(User.auth_token == hash_auth_token(token)))
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 

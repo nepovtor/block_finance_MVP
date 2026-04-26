@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -8,9 +8,28 @@ DEMO_USER_ID = 1
 DEFAULT_XP_TO_NEXT = 300
 
 
+async def sync_user_id_sequence(session: AsyncSession) -> None:
+    # Postgres does not advance the sequence when a row is inserted with an explicit id.
+    if session.bind is None or session.bind.dialect.name != "postgresql":
+        return
+
+    await session.execute(
+        text(
+            """
+            SELECT setval(
+                pg_get_serial_sequence('users', 'id'),
+                COALESCE((SELECT MAX(id) FROM users), 1),
+                true
+            )
+            """
+        )
+    )
+
+
 async def ensure_demo_user(session: AsyncSession) -> User:
     user = await session.scalar(select(User).where(User.id == DEMO_USER_ID))
     if user is not None:
+        await sync_user_id_sequence(session)
         return user
 
     user = User(
@@ -22,6 +41,8 @@ async def ensure_demo_user(session: AsyncSession) -> User:
         streak=4,
     )
     session.add(user)
+    await session.commit()
+    await sync_user_id_sequence(session)
     await session.commit()
     return user
 

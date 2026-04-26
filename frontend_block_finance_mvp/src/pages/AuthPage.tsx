@@ -3,9 +3,23 @@ import { useNavigate } from "react-router-dom";
 
 import { t } from "../i18n/translations";
 import { login, register } from "../services/api";
+import { ApiError } from "../services/api/client";
 import { useAppStore } from "../store/appStore";
 
 type AuthMode = "login" | "register";
+
+function isValidPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  return digits.length >= 10 && digits.length <= 15;
+}
+
+function isStrongPassword(password: string) {
+  return (
+    password.length >= 8 &&
+    /[A-Za-zА-Яа-я]/.test(password) &&
+    /\d/.test(password)
+  );
+}
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -17,8 +31,107 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function validateForm() {
+    const trimmedName = name.trim();
+
+    if (mode === "register" && !trimmedName) {
+      return t("auth.nameRequired", language);
+    }
+
+    if (mode === "register" && (trimmedName.length < 2 || trimmedName.length > 80)) {
+      return t("auth.nameInvalid", language);
+    }
+
+    if (!phone.trim()) {
+      return t("auth.phoneRequired", language);
+    }
+
+    if (!isValidPhone(phone)) {
+      return t("auth.phoneInvalid", language);
+    }
+
+    if (!password) {
+      return t("auth.passwordRequired", language);
+    }
+
+    if (!isStrongPassword(password)) {
+      return t("auth.passwordInvalid", language);
+    }
+
+    return null;
+  }
+
+  function mapAuthError(err: unknown) {
+    if (!(err instanceof ApiError)) {
+      return t("auth.genericError", language);
+    }
+
+    if (err.status === 401) {
+      return t("auth.loginInvalid", language);
+    }
+
+    if (err.status === 409) {
+      return t("auth.userExists", language);
+    }
+
+    if (err.status === 422) {
+      const detail = typeof err.message === "string" ? err.message : "";
+      const responseBody = err.responseBody;
+
+      if (
+        typeof responseBody === "object" &&
+        responseBody !== null &&
+        "detail" in responseBody &&
+        Array.isArray(responseBody.detail)
+      ) {
+        const fields = responseBody.detail
+          .map((issue) =>
+            typeof issue === "object" &&
+            issue !== null &&
+            "loc" in issue &&
+            Array.isArray(issue.loc)
+              ? issue.loc.join(".")
+              : ""
+          )
+          .filter(Boolean);
+
+        if (fields.some((field) => field.includes("name"))) {
+          return t("auth.nameInvalid", language);
+        }
+
+        if (fields.some((field) => field.includes("phone"))) {
+          return t("auth.phoneInvalid", language);
+        }
+
+        if (fields.some((field) => field.includes("password"))) {
+          return t("auth.passwordInvalid", language);
+        }
+      }
+
+      if (detail.includes("Name must")) {
+        return t("auth.nameInvalid", language);
+      }
+
+      if (detail.includes("phone")) {
+        return t("auth.phoneInvalid", language);
+      }
+
+      if (detail.includes("Password must")) {
+        return t("auth.passwordInvalid", language);
+      }
+    }
+
+    return t("auth.genericError", language);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -26,13 +139,13 @@ export default function AuthPage() {
       const response =
         mode === "login"
           ? await login(phone, password)
-          : await register(name, phone, password);
+          : await register(name.trim(), phone, password);
 
       setSession(response.token, response.user);
       setReward(response.user.activeReward);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("auth.genericError", language));
+      setError(mapAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -56,6 +169,9 @@ export default function AuthPage() {
               </h1>
               <p className="max-w-xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
                 {t("auth.subtitle", language)}
+              </p>
+              <p className="max-w-xl text-sm leading-6 text-emerald-200/85">
+                {t("auth.secureHint", language)}
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -109,6 +225,8 @@ export default function AuthPage() {
                   <input
                     value={name}
                     onChange={(event) => setName(event.target.value)}
+                    autoComplete="name"
+                    maxLength={80}
                     className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
                     placeholder={t("auth.namePlaceholder", language)}
                     required
@@ -123,6 +241,9 @@ export default function AuthPage() {
                 <input
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
+                  autoComplete="tel"
+                  inputMode="tel"
+                  maxLength={32}
                   className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
                   placeholder={t("auth.phonePlaceholder", language)}
                   required
@@ -137,9 +258,11 @@ export default function AuthPage() {
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  maxLength={128}
                   className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
                   placeholder={t("auth.passwordPlaceholder", language)}
-                  minLength={6}
+                  minLength={8}
                   required
                 />
               </label>
