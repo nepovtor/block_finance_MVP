@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 from alembic import command
 from alembic.config import Config
 from httpx import ASGITransport, AsyncClient
@@ -30,7 +31,7 @@ def migrate_database():
     command.upgrade(config, "head")
 
 
-@pytest.fixture()
+@pytest_asyncio.fixture()
 async def client():
     from app.main import app
 

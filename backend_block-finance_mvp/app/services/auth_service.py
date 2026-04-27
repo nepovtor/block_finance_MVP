@@ -102,14 +102,14 @@ def hash_token(token: str) -> str:
 
 
 def create_access_token(user: User) -> str:
-    now = utcnow()
+    now = datetime.utcnow()
     expires_at = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
         "sub": str(user.id),
         "typ": "access",
-        "iat": int(now.timestamp()),
-        "exp": int(expires_at.timestamp()),
+        "iat": now,
+        "exp": expires_at,
         "jti": secrets.token_urlsafe(16),
     }
 
