@@ -12,8 +12,10 @@ import { useGameDrag } from "../hooks/useGameDrag";
 import {
   getProfile,
   finishGameSession,
+  getLeaderboard,
   startGameSession,
   useReward,
+  type LeaderboardEntry,
 } from "../services/api";
 import {
   BOARD_SIZE,
@@ -80,6 +82,7 @@ export default function GamePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [gameOver, setGameOver] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [statusText, setStatusText] = useState(() => t("game.pickShape", language));
   const [scorePulse, setScorePulse] = useState(false);
   const [boardFlash, setBoardFlash] = useState(false);
@@ -208,6 +211,19 @@ export default function GamePage() {
     return () => window.clearTimeout(timeoutId);
   }, [invalidMovePulse]);
 
+  async function refreshLeaderboard() {
+    try {
+      const result = await getLeaderboard(10);
+      setLeaderboard(result.leaders);
+    } catch (err) {
+      console.error("[Game] Failed to load leaderboard", err);
+    }
+  }
+
+  useEffect(() => {
+    void refreshLeaderboard();
+  }, []);
+
   async function bankCurrentRun() {
     if (gameSessionId === null) return;
     const result = await finishGameSession(
@@ -218,6 +234,7 @@ export default function GamePage() {
     );
     addXP(result.xp_gained);
     setGameSessionId(null);
+    void refreshLeaderboard();
     return result;
   }
 
@@ -487,6 +504,7 @@ export default function GamePage() {
             rewardAvailable={rewardAvailable}
             submitting={submitting}
             language={language}
+            leaderboard={leaderboard}
             onRestart={() => void handleRestart()}
             onUseExtraMove={() => void handleUseExtraMove()}
             onBankAndRestart={() => void handleBankAndRestart()}

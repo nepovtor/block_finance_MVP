@@ -38,6 +38,20 @@ export type FinishGameResponse = {
   extra_moves_used: number;
 };
 
+export type LeaderboardEntry = {
+  rank: number;
+  name: string;
+  score: number;
+  duration_seconds: number;
+  moves_used: number;
+  extra_moves_used: number;
+  finished_at: string | null;
+};
+
+export type LeaderboardResponse = {
+  leaders: LeaderboardEntry[];
+};
+
 export type RewardUseResponse = {
   reward_used: boolean;
   reward: {
@@ -106,4 +120,9 @@ export async function finishGameSession(
       method: "POST",
     }
   );
+}
+
+
+export async function getLeaderboard(limit = 10) {
+  return apiFetch<LeaderboardResponse>(`/game/leaderboard?limit=${limit}`);
 }

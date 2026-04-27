@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models.user import User
 from app.services.auth_service import get_current_user
-from app.services.game_service import start_game, finish_game
+from app.services.game_service import get_leaderboard, start_game, finish_game
 
 router = APIRouter(prefix="/game", tags=["game"])
 
@@ -24,3 +24,11 @@ async def finish(
     db: AsyncSession = Depends(get_db),
 ):
     return await finish_game(db, session_id, score, moves_used, extra_moves_used)
+
+
+@router.get("/leaderboard")
+async def leaderboard(
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+):
+    return await get_leaderboard(db, limit)
