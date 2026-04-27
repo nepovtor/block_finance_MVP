@@ -10,6 +10,7 @@ from app.api.game import router as game_router
 from app.api.rewards import router as reward_router
 from app.api.users import router as user_router
 from app.api.auth import router as auth_router
+from app.api.privacy import router as privacy_router
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.services.auth_service import ensure_user_schema
@@ -20,6 +21,7 @@ import app.models.user
 import app.models.transaction
 import app.models.reward
 import app.models.game_session
+import app.models.user_consent
 
 load_dotenv()
 
@@ -102,6 +104,7 @@ def create_app() -> FastAPI:
     app.include_router(reward_router)
     app.include_router(user_router)
     app.include_router(auth_router)
+    app.include_router(privacy_router)
 
     return app
 

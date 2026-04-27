@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.models.user import User
+from app.services.consent_service import CONSENT_VERSION, create_user_consent
 from app.services.user_service import serialize_user_profile
 
 PBKDF2_ITERATIONS = 120_000
@@ -127,7 +128,17 @@ async def register_user(
     name: str,
     phone: str,
     password: str,
+    personal_data_consent: bool = False,
+    consent_version: str = CONSENT_VERSION,
+    client_ip: str | None = None,
+    user_agent: str | None = None,
 ) -> dict[str, Any]:
+    if not personal_data_consent:
+        raise HTTPException(
+            status_code=422,
+            detail="Personal data consent is required for registration",
+        )
+
     cleaned_name = validate_name(name)
     normalized_phone = validate_phone(phone)
     validated_password = validate_password(password)
@@ -147,6 +158,14 @@ async def register_user(
     )
     session.add(user)
     try:
+        await session.flush()
+        await create_user_consent(
+            session,
+            user_id=user.id,
+            consent_version=consent_version,
+            client_ip=client_ip,
+            user_agent=user_agent,
+        )
         await session.commit()
     except IntegrityError as exc:
         await session.rollback()

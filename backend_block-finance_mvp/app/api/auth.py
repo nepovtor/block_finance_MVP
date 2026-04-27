@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -16,8 +16,24 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register")
-async def register(payload: AuthRegisterPayload, db: AsyncSession = Depends(get_db)):
-    return await register_user(db, payload.name, payload.phone, payload.password)
+async def register(
+    payload: AuthRegisterPayload,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    client_ip = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+
+    return await register_user(
+        db,
+        payload.name,
+        payload.phone,
+        payload.password,
+        personal_data_consent=payload.personal_data_consent,
+        consent_version=payload.consent_version,
+        client_ip=client_ip,
+        user_agent=user_agent,
+    )
 
 
 @router.post("/login")

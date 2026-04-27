@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { t } from "../i18n/translations";
 import { login, register } from "../services/api";
@@ -151,7 +151,7 @@ export default function AuthPage() {
       const response =
         mode === "login"
           ? await login(phone, password)
-          : await register(name.trim(), phone, password);
+          : await register(name.trim(), phone, password, personalDataConsent);
 
       setSession(response.token, response.user);
       setReward(response.user.activeReward);

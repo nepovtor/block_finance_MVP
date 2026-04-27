@@ -29,6 +29,14 @@ export type AuthResponse = {
   user: UserProfile;
 };
 
+export type ConsentStatusResponse = {
+  accepted: boolean;
+  consent_type: string;
+  consent_version: string;
+  accepted_at: string | null;
+  revoked_at: string | null;
+};
+
 export type GameSessionResponse = {
   session_id: number;
 };
@@ -83,10 +91,21 @@ export async function login(phone: string, password: string) {
   });
 }
 
-export async function register(name: string, phone: string, password: string) {
+export async function register(
+  name: string,
+  phone: string,
+  password: string,
+  personalDataConsent: boolean
+) {
   return apiFetch<AuthResponse>("/auth/register", {
     method: "POST",
-    body: JSON.stringify({ name, phone, password }),
+    body: JSON.stringify({
+      name,
+      phone,
+      password,
+      personal_data_consent: personalDataConsent,
+      consent_version: "2026-04-privacy-v1",
+    }),
   });
 }
 
@@ -125,4 +144,21 @@ export async function finishGameSession(
 
 export async function getLeaderboard(limit = 10) {
   return apiFetch<LeaderboardResponse>(`/game/leaderboard?limit=${limit}`);
+}
+
+
+export async function getConsentStatus() {
+  return apiFetch<ConsentStatusResponse>("/privacy/consent");
+}
+
+export async function revokePersonalDataConsent() {
+  return apiFetch<ConsentStatusResponse>("/privacy/consent/revoke", {
+    method: "POST",
+  });
+}
+
+export async function deleteAccount() {
+  return apiFetch<null>("/privacy/account", {
+    method: "DELETE",
+  });
 }
