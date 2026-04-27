@@ -5,6 +5,7 @@ type GameOverModalProps = {
   score: number;
   movesUsed: number;
   extraMovesUsed: number;
+  elapsedSeconds: number;
   rewardAvailable: boolean;
   submitting: boolean;
   language: Language;
@@ -30,6 +31,7 @@ export function GameOverModal({
   score,
   movesUsed,
   extraMovesUsed,
+  elapsedSeconds,
   rewardAvailable,
   submitting,
   language,
@@ -42,6 +44,7 @@ export function GameOverModal({
   const noLeaders = language === "ru" ? "Сохранённых рекордов пока нет" : "No saved records yet";
   const bestLabel = language === "ru" ? "Золотое место" : "Gold place";
   const scoreLabel = language === "ru" ? "Счёт" : "Score";
+  const runTimeLabel = language === "ru" ? "Время игры" : "Game time";
   const timeLabel = language === "ru" ? "Время" : "Time";
 
   return (
@@ -57,18 +60,26 @@ export function GameOverModal({
           {t("game.noPlacements", language)}
         </p>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="rounded-2xl bg-white/[0.05] p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/40">
               {t("game.scoreLabel", language)}
             </p>
-            <p className="mt-1 text-xl font-bold text-white">{score}</p>
+            <p className="mt-1 text-lg font-bold text-white">{score}</p>
           </div>
           <div className="rounded-2xl bg-white/[0.05] p-3">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-white/40">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-white/40">
               {t("game.moves", language)}
             </p>
-            <p className="mt-1 text-xl font-bold text-white">{movesUsed}</p>
+            <p className="mt-1 text-lg font-bold text-white">{movesUsed}</p>
+          </div>
+          <div className="rounded-2xl bg-emerald-300/[0.08] p-3">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-emerald-100/55">
+              {runTimeLabel}
+            </p>
+            <p className="mt-1 text-lg font-bold text-emerald-50">
+              {formatDuration(elapsedSeconds)}
+            </p>
           </div>
         </div>
 

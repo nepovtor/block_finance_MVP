@@ -60,6 +60,14 @@ function buildFreshGameState() {
   };
 }
 
+function formatGameDuration(seconds: number) {
+  const safeSeconds = Math.max(0, seconds);
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
 export default function GamePage() {
   const {
     reward,
@@ -78,6 +86,8 @@ export default function GamePage() {
   const [movesUsed, setMovesUsed] = useState(0);
   const [extraMovesUsed, setExtraMovesUsed] = useState(0);
   const [comboStreak, setComboStreak] = useState(0);
+  const [runStartedAtMs, setRunStartedAtMs] = useState(() => Date.now());
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -168,6 +178,8 @@ export default function GamePage() {
         setMovesUsed(0);
         setExtraMovesUsed(0);
         setComboStreak(0);
+        setRunStartedAtMs(Date.now());
+        setElapsedSeconds(0);
         setGameOver(false);
         setError("");
         setStatusText(t("game.freshRunStarted", language));
@@ -210,6 +222,19 @@ export default function GamePage() {
     const timeoutId = window.setTimeout(() => setInvalidMovePulse(false), 220);
     return () => window.clearTimeout(timeoutId);
   }, [invalidMovePulse]);
+
+  useEffect(() => {
+    if (loading || gameOver) return;
+
+    const updateElapsedSeconds = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - runStartedAtMs) / 1000)));
+    };
+
+    updateElapsedSeconds();
+    const intervalId = window.setInterval(updateElapsedSeconds, 1000);
+
+    return () => window.clearInterval(intervalId);
+  }, [gameOver, loading, runStartedAtMs]);
 
   async function refreshLeaderboard() {
     try {
@@ -254,6 +279,8 @@ export default function GamePage() {
     setMovesUsed(0);
     setExtraMovesUsed(0);
     setComboStreak(0);
+    setRunStartedAtMs(Date.now());
+    setElapsedSeconds(0);
     setGameOver(false);
     setError("");
     setStatusText(t("game.freshRunStarted", language));
@@ -401,6 +428,8 @@ export default function GamePage() {
     clearedCellEffects.map((cell) => [`${cell.row}-${cell.col}`, cell])
   );
   const draggedBounds = draggedPiece ? getShapeBounds(draggedPiece.shape) : null;
+  const formattedElapsed = formatGameDuration(elapsedSeconds);
+  const timeLabel = language === "ru" ? "Время" : "Time";
 
   return (
     <div className="game-screen bg-[radial-gradient(circle_at_top,_#1e3359_0%,_#0d1528_46%,_#050a14_100%)] text-white">
@@ -445,9 +474,12 @@ export default function GamePage() {
         />
 
         <main className="flex flex-1 flex-col">
-          <div className="mb-3 flex items-center justify-between px-1 text-[11px] uppercase tracking-[0.22em] text-white/45">
+          <div className="mb-3 grid grid-cols-3 items-center gap-2 px-1 text-[11px] uppercase tracking-[0.18em] text-white/45">
             <span>{t("game.movesCount", language, { value: movesUsed })}</span>
-            <span>
+            <span className="text-center text-emerald-100/80">
+              {timeLabel} {formattedElapsed}
+            </span>
+            <span className="text-right">
               {loading
                 ? t("game.starting", language)
                 : t("game.session", language, {
@@ -501,6 +533,7 @@ export default function GamePage() {
             score={score}
             movesUsed={movesUsed}
             extraMovesUsed={extraMovesUsed}
+            elapsedSeconds={elapsedSeconds}
             rewardAvailable={rewardAvailable}
             submitting={submitting}
             language={language}
