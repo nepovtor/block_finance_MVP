@@ -111,6 +111,14 @@ function logApiFailure(
   console.error(`[API] ${label}`, details);
 }
 
+function createRequestId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 async function parseResponseBody(response: Response, url: string): Promise<unknown> {
   if (response.status === 204) {
     return null;
@@ -201,6 +209,10 @@ async function performRequest(
 
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
+  }
+
+  if (!headers.has("X-Request-ID")) {
+    headers.set("X-Request-ID", createRequestId());
   }
 
   if (authToken && !headers.has("Authorization")) {

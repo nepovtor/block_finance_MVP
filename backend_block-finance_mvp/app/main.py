@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 import os
 
 from fastapi import FastAPI
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
@@ -12,6 +13,7 @@ from app.api.users import router as user_router
 from app.api.auth import router as auth_router
 from app.api.privacy import router as privacy_router
 from app.db.session import SessionLocal, engine
+from app.core.observability import configure_logging, init_sentry, RequestIdMiddleware, wrap_with_sentry
 from app.services.user_service import ensure_demo_user
 
 import app.models.user
@@ -21,6 +23,8 @@ import app.models.game_session
 import app.models.user_consent
 
 load_dotenv()
+configure_logging()
+init_sentry()
 
 DEFAULT_ALLOWED_ORIGINS = (
     "http://127.0.0.1:5173",
@@ -70,6 +74,8 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    app.add_middleware(RequestIdMiddleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=get_allowed_origins(),
@@ -91,6 +97,13 @@ def create_app() -> FastAPI:
     async def health():
         return {"status": "ok"}
 
+    @app.get("/ready", tags=["meta"])
+    async def ready():
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+
+        return {"status": "ready"}
+
     app.include_router(transaction_router)
     app.include_router(game_router)
     app.include_router(reward_router)
@@ -101,4 +114,4 @@ def create_app() -> FastAPI:
     return app
 
 
-app = create_app()
+app = wrap_with_sentry(create_app())
