@@ -28,6 +28,7 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [personalDataConsent, setPersonalDataConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -56,6 +57,10 @@ export default function AuthPage() {
 
     if (!isStrongPassword(password)) {
       return t("auth.passwordInvalid", language);
+    }
+
+    if (mode === "register" && !personalDataConsent) {
+      return t("auth.personalDataConsentRequired", language);
     }
 
     return null;
@@ -280,6 +285,19 @@ export default function AuthPage() {
                   />
                 )}
               </label>
+
+              {mode === "register" ? (
+                <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-5 text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={personalDataConsent}
+                    onChange={(event) => setPersonalDataConsent(event.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 rounded border-white/20 bg-slate-950 text-emerald-400 accent-emerald-400"
+                    required
+                  />
+                  <span>{t("auth.personalDataConsent", language)}</span>
+                </label>
+              ) : null}
 
               {error ? (
                 <div className="rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">

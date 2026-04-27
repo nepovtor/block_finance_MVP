@@ -63,6 +63,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     "auth.loginInvalid": "Incorrect phone number or password",
     "auth.userExists": "An account with this phone number already exists",
     "auth.secureHint": "We protect your session and never store passwords in plain text.",
+    "auth.personalDataConsent":
+      "I consent to the storage and use of my phone number as personal data for account access and demo profile operation.",
+    "auth.personalDataConsentRequired":
+      "Consent to the storage and use of your phone number is required for registration.",
 
     "onboarding.badge": "Hackathon MVP Demo",
     "onboarding.quickIntroLabel": "Understand the product in under 8 seconds:",
@@ -304,6 +308,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     "auth.loginInvalid": "Неверный номер телефона или пароль",
     "auth.userExists": "Пользователь с таким номером уже существует",
     "auth.secureHint": "Мы защищаем сессию и не храним пароли в открытом виде.",
+    "auth.personalDataConsent":
+      "Я даю согласие на хранение и использование моего номера телефона как персональных данных для доступа к аккаунту и работы демо-профиля.",
+    "auth.personalDataConsentRequired":
+      "Для регистрации необходимо согласие на хранение и использование номера телефона.",
 
     "onboarding.badge": "Демо Hackathon MVP",
     "onboarding.quickIntroLabel": "Поймите продукт меньше чем за 8 секунд:",
