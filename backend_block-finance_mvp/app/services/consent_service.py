@@ -8,6 +8,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.game_session import GameSession
+from app.models.refresh_token import RefreshToken
 from app.models.reward import Reward
 from app.models.transaction import Transaction
 from app.models.user import User
@@ -110,6 +111,7 @@ async def delete_user_account(
     user_id = user.id
 
     await session.execute(delete(UserConsent).where(UserConsent.user_id == user_id))
+    await session.execute(delete(RefreshToken).where(RefreshToken.user_id == user_id))
     await session.execute(delete(GameSession).where(GameSession.user_id == user_id))
     await session.execute(delete(Reward).where(Reward.user_id == user_id))
     await session.execute(delete(Transaction).where(Transaction.user_id == user_id))

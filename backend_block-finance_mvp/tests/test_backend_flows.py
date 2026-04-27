@@ -134,3 +134,42 @@ async def test_reward_use_flow(client):
     assert reward_response.status_code == 200, reward_response.text
     assert reward_response.json()["reward_used"] is True
     assert reward_response.json()["reward"]["type"] == "extra_move"
+
+
+@pytest.mark.asyncio
+async def test_refresh_and_logout_revokes_refresh_tokens(client):
+    registered = await register_user(client, "+375291119999", "Refresh User")
+    refresh_token = registered["refresh_token"]
+
+    refresh_response = await client.post(
+        "/auth/refresh",
+        json={"refresh_token": refresh_token},
+    )
+
+    assert refresh_response.status_code == 200, refresh_response.text
+
+    refreshed = refresh_response.json()
+    assert refreshed["access_token"]
+    assert refreshed["refresh_token"]
+    assert refreshed["refresh_token"] != refresh_token
+
+    me_response = await client.get(
+        "/auth/me",
+        headers=auth_headers(refreshed["access_token"]),
+    )
+
+    assert me_response.status_code == 200, me_response.text
+
+    logout_response = await client.post(
+        "/auth/logout",
+        headers=auth_headers(refreshed["access_token"]),
+    )
+
+    assert logout_response.status_code == 204, logout_response.text
+
+    revoked_refresh_response = await client.post(
+        "/auth/refresh",
+        json={"refresh_token": refreshed["refresh_token"]},
+    )
+
+    assert revoked_refresh_response.status_code == 401

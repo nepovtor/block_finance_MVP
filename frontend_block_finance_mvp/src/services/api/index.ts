@@ -26,6 +26,10 @@ export type UserProfile = {
 
 export type AuthResponse = {
   token: string;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
   user: UserProfile;
 };
 

@@ -17,6 +17,7 @@ sys.path.append(str(BASE_DIR))
 from app.db.base import Base
 
 import app.models.game_session
+import app.models.refresh_token
 import app.models.reward
 import app.models.transaction
 import app.models.user

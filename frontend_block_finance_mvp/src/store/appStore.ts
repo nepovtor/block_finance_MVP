@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 export type Language = "en" | "ru";
 export const AUTH_TOKEN_STORAGE_KEY = "block-finance-auth-token";
+export const REFRESH_TOKEN_STORAGE_KEY = "block-finance-refresh-token";
 
 type Reward = {
   type: string;
@@ -100,6 +101,31 @@ function persistAuthToken(token: string | null) {
   window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
 }
 
+function loadRefreshToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window.localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function persistRefreshToken(token: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (token) {
+    window.localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, token);
+    return;
+  }
+
+  window.localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
+}
+
 function loadDemoProductState(): DemoProductState {
   if (typeof window === "undefined") {
     return {
@@ -166,12 +192,13 @@ type AppState = {
   language: Language;
   hasSelectedLanguage: boolean;
   authToken: string | null;
+  refreshToken: string | null;
   demoProduct: DemoProductState;
   setUser: (user: User) => void;
   setReward: (reward: Reward) => void;
   setGameSessionId: (sessionId: number | null) => void;
   setLanguage: (language: Language) => void;
-  setSession: (token: string, user: User) => void;
+  setSession: (accessToken: string, refreshToken: string, user: User) => void;
   clearSession: () => void;
   addXP: (value: number) => void;
   recordPayment: () => number;
@@ -184,6 +211,7 @@ const initialDemoProductState = loadDemoProductState();
 const initialLanguage = loadLanguage();
 const initialHasSelectedLanguage = loadHasSelectedLanguage();
 const initialAuthToken = loadAuthToken();
+const initialRefreshToken = loadRefreshToken();
 
 export const useAppStore = create<AppState>((set) => ({
   user: DEFAULT_USER,
@@ -192,6 +220,7 @@ export const useAppStore = create<AppState>((set) => ({
   language: initialLanguage,
   hasSelectedLanguage: initialHasSelectedLanguage,
   authToken: initialAuthToken,
+  refreshToken: initialRefreshToken,
   demoProduct: initialDemoProductState,
   setUser: (user) => set({ user }),
   setReward: (reward) => set({ reward }),
@@ -200,10 +229,12 @@ export const useAppStore = create<AppState>((set) => ({
     persistLanguage(language);
     set({ language, hasSelectedLanguage: true });
   },
-  setSession: (token, user) => {
-    persistAuthToken(token);
+  setSession: (accessToken, refreshToken, user) => {
+    persistAuthToken(accessToken);
+    persistRefreshToken(refreshToken);
     set({
-      authToken: token,
+      authToken: accessToken,
+      refreshToken,
       user,
       reward: null,
       gameSessionId: null,
@@ -211,8 +242,10 @@ export const useAppStore = create<AppState>((set) => ({
   },
   clearSession: () => {
     persistAuthToken(null);
+    persistRefreshToken(null);
     set({
       authToken: null,
+      refreshToken: null,
       user: DEFAULT_USER,
       reward: null,
       gameSessionId: null,

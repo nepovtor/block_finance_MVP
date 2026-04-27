@@ -18,6 +18,19 @@ export class ApiError extends Error {
   }
 }
 
+type RefreshResponse = {
+  access_token: string;
+  refresh_token: string;
+  token?: string;
+  user: {
+    name: string;
+    level: number;
+    xp: number;
+    xpToNext: number;
+    streak: number;
+  };
+};
+
 function normalizeBaseUrl(url?: string): string {
   if (!url) {
     return "";
@@ -135,13 +148,56 @@ async function parseResponseBody(response: Response, url: string): Promise<unkno
   }
 }
 
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const url = buildUrl(path);
+async function refreshSession() {
+  const refreshToken = useAppStore.getState().refreshToken;
+
+  if (!refreshToken) {
+    return false;
+  }
+
+  const url = buildUrl("/auth/refresh");
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: new Headers({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    const responseBody = await parseResponseBody(response, url);
+
+    if (!response.ok) {
+      useAppStore.getState().clearSession();
+      return false;
+    }
+
+    const payload = responseBody as RefreshResponse;
+    const nextAccessToken = payload.access_token || payload.token;
+
+    if (!nextAccessToken || !payload.refresh_token || !payload.user) {
+      useAppStore.getState().clearSession();
+      return false;
+    }
+
+    useAppStore.getState().setSession(
+      nextAccessToken,
+      payload.refresh_token,
+      payload.user
+    );
+
+    return true;
+  } catch {
+    useAppStore.getState().clearSession();
+    return false;
+  }
+}
+
+async function performRequest(
+  url: string,
+  options: RequestInit,
+  authToken: string | null
+) {
   const headers = new Headers(options.headers);
-  const authToken = useAppStore.getState().authToken;
 
   if (!(options.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
@@ -151,13 +207,23 @@ export async function apiFetch<T>(
     headers.set("Authorization", `Bearer ${authToken}`);
   }
 
+  return fetch(url, {
+    ...options,
+    headers,
+  });
+}
+
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const url = buildUrl(path);
+  const authToken = useAppStore.getState().authToken;
+
   let response: Response;
 
   try {
-    response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    response = await performRequest(url, options, authToken);
   } catch (error) {
     logApiFailure("Network request failed", {
       url,
@@ -167,7 +233,22 @@ export async function apiFetch<T>(
     throw new ApiError(FRIENDLY_BACKEND_UNAVAILABLE, 0, null);
   }
 
-  const responseBody = await parseResponseBody(response, url);
+  let responseBody = await parseResponseBody(response, url);
+
+  if (
+    response.status === 401 &&
+    !path.startsWith("/auth/login") &&
+    !path.startsWith("/auth/register") &&
+    !path.startsWith("/auth/refresh")
+  ) {
+    const refreshed = await refreshSession();
+
+    if (refreshed) {
+      const nextAuthToken = useAppStore.getState().authToken;
+      response = await performRequest(url, options, nextAuthToken);
+      responseBody = await parseResponseBody(response, url);
+    }
+  }
 
   if (!response.ok) {
     const detailedMessage = getDetailFromBody(responseBody);

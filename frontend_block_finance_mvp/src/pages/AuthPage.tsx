@@ -153,7 +153,7 @@ export default function AuthPage() {
           ? await login(phone, password)
           : await register(name.trim(), phone, password, personalDataConsent);
 
-      setSession(response.token, response.user);
+      setSession(response.access_token || response.token, response.refresh_token, response.user);
       setReward(response.user.activeReward);
       navigate("/", { replace: true });
     } catch (err) {
