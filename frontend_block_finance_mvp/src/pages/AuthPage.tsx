@@ -24,6 +24,7 @@ function isStrongPassword(password: string) {
 export default function AuthPage() {
   const navigate = useNavigate();
   const { language, setReward, setSession } = useAppStore();
+
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,6 +32,11 @@ export default function AuthPage() {
   const [personalDataConsent, setPersonalDataConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  function switchMode(nextMode: AuthMode) {
+    setMode(nextMode);
+    setError("");
+  }
 
   function validateForm() {
     const trimmedName = name.trim();
@@ -131,6 +137,7 @@ export default function AuthPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
@@ -157,169 +164,187 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-clip px-4 py-6 text-slate-100 sm:py-8">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-5xl items-center sm:min-h-[calc(100vh-4rem)]">
-        <section className="glass-panel bg-grid animate-rise-in relative grid w-full gap-8 overflow-hidden p-6 sm:p-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
-          <div className="absolute -right-24 top-10 h-48 w-48 rounded-full bg-emerald-400/15 blur-3xl" />
-          <div className="absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-amber-300/10 blur-3xl" />
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.22),transparent_28%),radial-gradient(circle_at_85%_15%,rgba(251,191,36,0.15),transparent_26%),linear-gradient(180deg,#020617_0%,#0f172a_48%,#020617_100%)] px-4 py-5 text-slate-100 sm:px-6 sm:py-8">
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-20 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
 
-          <div className="space-y-5">
-            <div className="inline-flex rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
-              {t("auth.badge", language)}
-            </div>
-            <div className="space-y-4">
-              <h1 className="max-w-2xl text-3xl font-bold text-white sm:text-5xl">
-                {t("auth.title", language)}
-              </h1>
-              <p className="max-w-xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-                {t("auth.subtitle", language)}
+      <section className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] w-full max-w-6xl items-center gap-6 lg:grid-cols-[1.02fr_0.98fr]">
+        <div className="animate-rise-in space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-emerald-100 shadow-[0_0_30px_rgba(16,185,129,0.12)]">
+            <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]" />
+            {t("auth.badge", language)}
+          </div>
+
+          <div className="max-w-2xl space-y-4">
+            <h1 className="text-balance text-4xl font-bold leading-[1.03] text-white sm:text-5xl lg:text-6xl">
+              {t("auth.title", language)}
+            </h1>
+            <p className="max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+              {t("auth.subtitle", language)}
+            </p>
+          </div>
+
+          <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
+            {[
+              t("auth.step1", language),
+              t("auth.step2", language),
+              t("auth.step3", language),
+            ].map((step) => (
+              <div
+                key={step}
+                className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-sm leading-5 text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl"
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+
+          <div className="max-w-xl rounded-3xl border border-emerald-200/10 bg-emerald-300/[0.06] p-4 text-sm leading-6 text-emerald-100/90 backdrop-blur-xl">
+            {t("auth.secureHint", language)}
+          </div>
+        </div>
+
+        <div className="animate-rise-in rounded-[2rem] border border-white/10 bg-slate-950/72 p-4 shadow-[0_28px_90px_rgba(2,6,23,0.62)] backdrop-blur-2xl sm:p-6">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-200/80">
+                MTBlocks
               </p>
-              <p className="max-w-xl text-sm leading-6 text-emerald-200/85">
-                {t("auth.secureHint", language)}
+              <p className="mt-1 text-sm text-slate-400">
+                Banking game profile
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                t("auth.step1", language),
-                t("auth.step2", language),
-                t("auth.step3", language),
-              ].map((step) => (
-                <div
-                  key={step}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-slate-200"
-                >
-                  {step}
-                </div>
-              ))}
+            <div className="rounded-2xl border border-amber-200/20 bg-amber-200/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-100">
+              Demo
             </div>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-5 shadow-xl shadow-slate-950/30 sm:p-6">
-            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/8 bg-white/[0.03] p-1">
-              <button
-                type="button"
-                onClick={() => setMode("login")}
-                className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                  mode === "login"
-                    ? "bg-emerald-400 text-slate-950"
-                    : "text-slate-300 hover:bg-white/[0.04]"
-                }`}
-              >
-                {t("auth.login", language)}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("register")}
-                className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                  mode === "register"
-                    ? "bg-emerald-400 text-slate-950"
-                    : "text-slate-300 hover:bg-white/[0.04]"
-                }`}
-              >
-                {t("auth.register", language)}
-              </button>
-            </div>
+          <div className="grid grid-cols-2 gap-2 rounded-[1.35rem] border border-white/10 bg-white/[0.035] p-1">
+            <button
+              type="button"
+              onClick={() => switchMode("login")}
+              className={[
+                "rounded-[1.1rem] px-4 py-3 text-sm font-semibold transition",
+                mode === "login"
+                  ? "bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20"
+                  : "text-slate-300 hover:bg-white/[0.05]",
+              ].join(" ")}
+            >
+              {t("auth.login", language)}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode("register")}
+              className={[
+                "rounded-[1.1rem] px-4 py-3 text-sm font-semibold transition",
+                mode === "register"
+                  ? "bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20"
+                  : "text-slate-300 hover:bg-white/[0.05]",
+              ].join(" ")}
+            >
+              {t("auth.register", language)}
+            </button>
+          </div>
 
-            <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-              {mode === "register" ? (
-                <label className="block">
-                  <span className="mb-2 block text-sm text-slate-300">
-                    {t("auth.nameLabel", language)}
-                  </span>
-                  <input
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    autoComplete="name"
-                    maxLength={80}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
-                    placeholder={t("auth.namePlaceholder", language)}
-                    required
-                  />
-                </label>
-              ) : null}
-
+          <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
+            {mode === "register" ? (
               <label className="block">
                 <span className="mb-2 block text-sm text-slate-300">
-                  {t("auth.phoneLabel", language)}
+                  {t("auth.nameLabel", language)}
                 </span>
                 <input
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                  autoComplete="tel"
-                  inputMode="tel"
-                  maxLength={32}
-                  className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
-                  placeholder={t("auth.phonePlaceholder", language)}
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  autoComplete="name"
+                  maxLength={80}
+                  className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/60 focus:bg-white/[0.065]"
+                  placeholder={t("auth.namePlaceholder", language)}
                   required
                 />
               </label>
+            ) : null}
 
-              <label className="block">
-                <span className="mb-2 block text-sm text-slate-300">
-                  {t("auth.passwordLabel", language)}
-                </span>
-                {mode === "login" ? (
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="current-password"
-                    maxLength={128}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
-                    placeholder={t("auth.passwordPlaceholder", language)}
-                    minLength={8}
-                    required
-                  />
-                ) : (
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="new-password"
-                    maxLength={128}
-                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/50"
-                    placeholder={t("auth.passwordPlaceholder", language)}
-                    minLength={8}
-                    required
-                  />
-                )}
+            <label className="block">
+              <span className="mb-2 block text-sm text-slate-300">
+                {t("auth.phoneLabel", language)}
+              </span>
+              <input
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                autoComplete="tel"
+                inputMode="tel"
+                maxLength={32}
+                className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/60 focus:bg-white/[0.065]"
+                placeholder={t("auth.phonePlaceholder", language)}
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm text-slate-300">
+                {t("auth.passwordLabel", language)}
+              </span>
+              {mode === "login" ? (
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  maxLength={128}
+                  className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/60 focus:bg-white/[0.065]"
+                  placeholder={t("auth.passwordPlaceholder", language)}
+                  minLength={8}
+                  required
+                />
+              ) : (
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="new-password"
+                  maxLength={128}
+                  className="w-full rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-300/60 focus:bg-white/[0.065]"
+                  placeholder={t("auth.passwordPlaceholder", language)}
+                  minLength={8}
+                  required
+                />
+              )}
+            </label>
+
+            {mode === "register" ? (
+              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-5 text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={personalDataConsent}
+                  onChange={(event) => setPersonalDataConsent(event.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-white/20 bg-slate-950 text-emerald-400 accent-emerald-400"
+                  required
+                />
+                <span>{t("auth.personalDataConsent", language)}</span>
               </label>
+            ) : null}
 
-              {mode === "register" ? (
-                <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm leading-5 text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={personalDataConsent}
-                    onChange={(event) => setPersonalDataConsent(event.target.checked)}
-                    className="mt-1 h-4 w-4 shrink-0 rounded border-white/20 bg-slate-950 text-emerald-400 accent-emerald-400"
-                    required
-                  />
-                  <span>{t("auth.personalDataConsent", language)}</span>
-                </label>
-              ) : null}
+            {error ? (
+              <div className="rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
+                {error}
+              </div>
+            ) : null}
 
-              {error ? (
-                <div className="rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-                  {error}
-                </div>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="glow-button min-h-14 w-full rounded-2xl bg-emerald-400 px-6 py-4 text-base font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading
-                  ? t("auth.processing", language)
-                  : mode === "login"
-                    ? t("auth.loginCta", language)
-                    : t("auth.registerCta", language)}
-              </button>
-            </form>
-          </div>
-        </section>
-      </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="glow-button min-h-14 w-full rounded-2xl bg-emerald-400 px-6 py-4 text-base font-bold text-slate-950 shadow-lg shadow-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {loading
+                ? t("auth.processing", language)
+                : mode === "login"
+                  ? t("auth.loginCta", language)
+                  : t("auth.registerCta", language)}
+            </button>
+          </form>
+        </div>
+      </section>
     </main>
   );
 }
