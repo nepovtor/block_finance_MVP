@@ -21,6 +21,7 @@ if TEST_DB_PATH.exists():
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
 os.environ["ENVIRONMENT"] = "test"
 os.environ["CONSENT_HASH_SECRET"] = "test-consent-secret"
+os.environ["JWT_SECRET"] = "test-super-secure-jwt-secret-32-bytes"
 
 
 @pytest.fixture(scope="session", autouse=True)
