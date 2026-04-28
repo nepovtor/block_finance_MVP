@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import os
 
@@ -16,6 +16,10 @@ from app.models.user_consent import UserConsent
 
 CONSENT_VERSION = "2026-04-privacy-v1"
 PERSONAL_DATA_CONSENT_TYPE = "personal_data_phone"
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def hash_metadata(value: str | None) -> str | None:
@@ -98,7 +102,7 @@ async def revoke_personal_data_consent(
     if consent is None:
         return await get_personal_data_consent_status(session, user)
 
-    consent.revoked_at = datetime.utcnow()
+    consent.revoked_at = utcnow()
     await session.commit()
 
     return await get_personal_data_consent_status(session, user)
