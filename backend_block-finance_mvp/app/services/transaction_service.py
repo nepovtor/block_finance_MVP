@@ -6,6 +6,7 @@ from app.services.reward_service import get_active_reward
 from app.services.synergy_service import process_synergy
 from app.services.user_service import get_user_by_id
 
+
 async def create_transaction(session: AsyncSession, user_id: int, data):
     user = await get_user_by_id(session, user_id)
     if user is None:
@@ -27,7 +28,7 @@ async def create_transaction(session: AsyncSession, user_id: int, data):
                 "source": existing_reward.source,
             }
         else:
-            reward = Reward(**reward_data.dict())
+            reward = Reward(**reward_data.model_dump())
             session.add(reward)
             reward_payload = {
                 "type": reward.type,
