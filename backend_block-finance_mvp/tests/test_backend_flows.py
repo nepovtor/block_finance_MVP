@@ -93,6 +93,7 @@ async def test_start_finish_game_and_leaderboard(client):
 
     finish_response = await client.post(
         "/game/finish",
+        headers=headers,
         params={
             "session_id": session_id,
             "score": 1500,
@@ -173,3 +174,76 @@ async def test_refresh_and_logout_revokes_refresh_tokens(client):
     )
 
     assert revoked_refresh_response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_finish_game_requires_owner_and_rejects_replay(client):
+    registered = await register_user(client, "+375291110007", "Owner User")
+    headers = auth_headers(registered["token"])
+
+    start_response = await client.post("/game/start", headers=headers)
+    assert start_response.status_code == 200, start_response.text
+
+    session_id = start_response.json()["session_id"]
+
+    unauthorized_finish = await client.post(
+        "/game/finish",
+        params={
+            "session_id": session_id,
+            "score": 100,
+            "moves_used": 1,
+            "extra_moves_used": 0,
+        },
+    )
+
+    assert unauthorized_finish.status_code == 401
+
+    finish_response = await client.post(
+        "/game/finish",
+        headers=headers,
+        params={
+            "session_id": session_id,
+            "score": 100,
+            "moves_used": 1,
+            "extra_moves_used": 0,
+        },
+    )
+
+    assert finish_response.status_code == 200, finish_response.text
+
+    replay_response = await client.post(
+        "/game/finish",
+        headers=headers,
+        params={
+            "session_id": session_id,
+            "score": 120,
+            "moves_used": 2,
+            "extra_moves_used": 0,
+        },
+    )
+
+    assert replay_response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_finish_game_rejects_suspicious_score(client):
+    registered = await register_user(client, "+375291110008", "Anti Cheat User")
+    headers = auth_headers(registered["token"])
+
+    start_response = await client.post("/game/start", headers=headers)
+    assert start_response.status_code == 200, start_response.text
+
+    session_id = start_response.json()["session_id"]
+
+    finish_response = await client.post(
+        "/game/finish",
+        headers=headers,
+        params={
+            "session_id": session_id,
+            "score": 999999,
+            "moves_used": 1,
+            "extra_moves_used": 0,
+        },
+    )
+
+    assert finish_response.status_code == 422
