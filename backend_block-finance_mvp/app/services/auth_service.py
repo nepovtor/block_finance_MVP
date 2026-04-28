@@ -5,7 +5,7 @@ import hmac
 import os
 import secrets
 from asyncio import sleep
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
@@ -33,11 +33,20 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
 
 
 def utcnow() -> datetime:
-    return datetime.utcnow()
+    """Return naive UTC datetime for database fields stored without timezone."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def jwt_now() -> datetime:
+    """Return timezone-aware UTC datetime for JWT claims."""
+    return datetime.now(timezone.utc)
 
 
 def get_jwt_secret() -> str:
-    return os.getenv("JWT_SECRET") or os.getenv("SECRET_KEY") or "block-finance-demo-jwt-secret"
+    secret = os.getenv("JWT_SECRET") or os.getenv("SECRET_KEY")
+    if not secret:
+        raise RuntimeError("JWT_SECRET or SECRET_KEY must be configured")
+    return secret
 
 
 def normalize_phone(phone: str) -> str:
@@ -102,7 +111,7 @@ def hash_token(token: str) -> str:
 
 
 def create_access_token(user: User) -> str:
-    now = datetime.utcnow()
+    now = jwt_now()
     expires_at = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
