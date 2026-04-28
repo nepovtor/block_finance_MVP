@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from sqlalchemy import select, text
@@ -6,6 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.game_session import GameSession
 from app.models.user import User
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def ensure_game_session_schema(connection):
@@ -62,7 +66,7 @@ async def finish_game(
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
-    finished_at = datetime.utcnow()
+    finished_at = utcnow()
     duration_seconds = 0
 
     if gs.created_at is not None:
