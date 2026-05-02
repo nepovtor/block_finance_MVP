@@ -202,6 +202,19 @@ const BASE_SHAPES: BaseShapeDefinition[] = [
       { row: 2, col: 1 },
     ],
   },
+  {
+    id: "zig-4",
+    name: "Z",
+    color: "bg-lime-400",
+    accentLabel: "LEDG",
+    accentPattern: "bank",
+    cells: [
+      { row: 0, col: 0 },
+      { row: 0, col: 1 },
+      { row: 1, col: 1 },
+      { row: 1, col: 2 },
+    ],
+  },
 ];
 
 export const SHAPES: ShapeDefinition[] = expandShapeRotations(BASE_SHAPES);
